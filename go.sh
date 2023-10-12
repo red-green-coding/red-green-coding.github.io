@@ -26,7 +26,7 @@ goal_build() {
 goal_help() {
   echo "usage: $0 <goal>
     available goals
-    serve   -- serve the blog locally
+    serve   -- serve the blog locally (http://localhost:4000)
     build   -- build the blog
     "
   exit 1
