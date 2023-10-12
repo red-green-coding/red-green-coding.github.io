@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 set -e
 
 export JEKYLL_VERSION=3.8
@@ -27,7 +26,8 @@ goal_build() {
 goal_help() {
   echo "usage: $0 <goal>
     available goals
-
+    serve   -- serve the blog locally
+    build   -- build the blog
     "
   exit 1
 }
