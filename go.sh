@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 set -e
 
 export JEKYLL_VERSION=3.8
@@ -12,7 +11,7 @@ goal_serve() {
     --env FORCE_POLLING=true \
     -p 4000:4000 \
     -it jekyll/builder:$JEKYLL_VERSION \
-    jekyll serve
+    jekyll serve --drafts
 }
 
 goal_build() {
@@ -27,7 +26,8 @@ goal_build() {
 goal_help() {
   echo "usage: $0 <goal>
     available goals
-
+    serve   -- serve the blog locally (http://localhost:4000)
+    build   -- build the blog (builds static artifact for publishing)
     "
   exit 1
 }
