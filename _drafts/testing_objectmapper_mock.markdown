@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Avoid mocking that ObjectMapper!"
+title:  "Avoid mocking the ObjectMapper!"
 categories: bettertests
 ---
 
@@ -75,7 +75,7 @@ public class MyService1Test {
 }
 {% endhighlight %}
 
-# Don't mock 3rd party code
+# Don't mock the ObjectMapper
 
 If we look a bit closer we can see that there are two problems with the JSON mapping:
 * the JSON payload has an attribute named _Name_, in the DTO that field is named _name_
@@ -130,6 +130,16 @@ the test we can see that it now fails:
         not marked as ignorable (2 known properties: "name", "yearOfBirth"])
 {% endhighlight %}
 
+# don't mock 3rd party code
+
+Of course this problem is not limited to the ObjectMapper.
+Most 3rd party code we use in our projects is rather complex. This is especially true for 3rd party code 
+that communicates with external systems like databases or message brokers. So you should avoid mocking 3rd party code in general.
+
+Using the real ObjectMapper instead of a mocked one was an easy change. With some of the mentioned dependencies it might be not that easy. If you'd want to use a real Database client
+in your test you would also need some real database to connect to. This is the realm of integration testing. Have a look at [testcontainers][testcontainers], it allows you to define such dependencies
+as code integrated into your tests.
+
 # Conclusion
 
 In this article, we explained why you should avoid mocking the _ObjectMapper_ in your unit tests. 
@@ -142,3 +152,4 @@ Check out the [Mockito documentation][mockito] for more info on how to use Mocki
 [mockito]: https://site.mockito.org/
 [mockito-how]: https://github.com/mockito/mockito/wiki/How-to-write-good-tests
 [github-examples]: https://github.com/red-green-coding/bettertests-objectmapper-mock
+[testcontainers]: https://testcontainers.com/
