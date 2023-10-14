@@ -1,8 +1,10 @@
 ---
 layout: post
 title:  "Avoid mocking that ObjectMapper! (part 2)"
-categories: bettertests
+categories: [bettertests]
 ---
+
+This builds on the example presented in part 1 of the article
 
 ## Test code should be decoupled from the code it tests
 
