@@ -21,18 +21,17 @@ This violates an important guideline: _Dont't mock third-party code_.
 Let's first have a look at some source code and then dive in to understand why this guideline matters.
 
 {% highlight java %}
-public record MyDto(String name, int yearOfBirth) {
-}
+public record MyDto(String name, int yearOfBirth) { }
 
 public class MyOtherService {
-public void useDto(MyDto dto) {
-...
-}
+    public void useDto(MyDto dto) {
+        ...
+    }
 }
 
 public class MyService1 {
-private ObjectMapper mapper;
-private MyOtherService myOtherService;
+    private ObjectMapper mapper;
+    private MyOtherService myOtherService;
 
     MyService1(MyOtherService myOtherService, ObjectMapper mapper) {
         this.myOtherService = myOtherService;
@@ -46,7 +45,7 @@ private MyOtherService myOtherService;
 }
 {% endhighlight %}
 
-The code example consists of a DTO class, the class _MyService_ we want to test, and the class _MyOtherService_ which is
+The code example consists of a DTO class, the class _MyService_ is the one thats getting tested, and the class _MyOtherService_ which is
 a dependency of our class to test. This a trimmed-down example of code like we often find in existing codebases.
 
 Now let's look at the corresponding test. The test uses the problematic pattern we mentioned above.
@@ -67,10 +66,10 @@ public class MyService1Test {
     @Test
     void canConsumeJson() throws Exception {
         var data = """
-                {"Name" "MyName", "yearOfBirth": "1973"}
+                {"Name" "MyName", "yearOfBirth": "1984"}
                 """;
 
-        Mockito.doReturn(new MyDto("MyName", 1973)).when(mapper).readValue(data, MyDto.class);
+        Mockito.doReturn(new MyDto("MyName", 1984)).when(mapper).readValue(data, MyDto.class);
 
         myService.useData(data);
 
@@ -98,7 +97,7 @@ Its behavior not just depends on which methods our code directly calls, the mapp
 This leads us to the conclusion, that we consider mocking an ObjectMapper as too risky for our purposes.
 We want our tests to be meaningful and accurate.
 
-Luckily there is a rather easy fix. An ObjectMapper is easy to create, by just invoking its constructor: `new ObjectMapper()`. (TODO footnote re-use shared mapper)
+Luckily there is a rather easy fix. An ObjectMapper is easy to create, by just invoking its constructor: `new ObjectMapper()`[^1].
 We slightly modified our test to use a real mapper instead of a mocked one:
 
 {% highlight java %}
@@ -118,8 +117,10 @@ public class MyService2Test {
     @Test
     void canConsumeJson() throws Exception {
         var data = """
-                {"name" "MyName", "yearOfBirth": 1974"}
+                {"Name" "MyName", "yearOfBirth": "1984"}
                 """;
+
+        // no need to stub the mapper anymore
 
         myService.useData(data);
 
@@ -168,3 +169,5 @@ Also, see the section _Don't mock a type you don't own!_ in their article about 
 [jackson]: https://github.com/FasterXML/jackson-docs
 [mockito-how]: https://github.com/mockito/mockito/wiki/How-to-write-good-tests#dont-mock-a-type-you-dont-own
 [github-examples]: https://github.com/red-green-coding/bettertests-objectmapper-mock
+
+[^1]: In an actual project we would re-use the mapper here thats used by the rest of the application instead of creating a new one.
