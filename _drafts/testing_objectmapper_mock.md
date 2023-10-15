@@ -10,15 +10,13 @@ In this quick article, we'll show _why you shouldn't mock an ObjectMapper_ in yo
 We assume you have a general understanding of Java, Unit testing, and Mocking with Mockito.
 Here is a [Tutorial][mockito-tutorial] to refresh your knowledge about the annotations used in our code samples.
 
-_Note: If you already believe that mocking third-party code is wrong, you can stop reading now._
-
 # The problem
 
 A recurring problematic pattern in
 codebases is when the tests mock the [Jackson ObjectMapper][jackson].
 Mocking the ObjectMapper violates an important guideline: _Don't mock third-party code_.
 
-Let's first look at a source code example and then understand why this guideline matters.
+First, let's look at a source code example and then understand why this guideline matters.
 
 {% highlight java %}
 public record MyValue(String name, int yearOfBirth) { }
@@ -43,8 +41,8 @@ public class MyService1 {
 }
 {% endhighlight %}
 
-The code example consists of a value _MyValue_, the class _MyService_ we want to test, and the class _MyOtherService_, which is
-a dependency of MyService. This a trimmed-down example of code like we often find in existing codebases.
+The code example consists of a value class _MyValue_, the class _MyService_ we want to test, and the class _MyOtherService_, which is
+a dependency of MyService. This a trimmed-down example of code that we could often find in existing codebases.
 
 Now, let's look at the corresponding test.
 
@@ -78,27 +76,27 @@ public class MyService1Test {
 }
 {% endhighlight %}
 
-As we can see, the test replaces all dependencies of _MyService_ with mocks during the. Why is this problematic?
+As we can see, the test replaces all dependencies of _MyService_ with mocks during testing. Why is this problematic?
 
 # Don't mock the ObjectMapper
 
 If we take a closer look, we can see that there are two problems with the JSON mapping:
-* the JSON payload has an attribute named _Name_. In the _value_, that field is named _name_
-* the attribute _yearOfBirth_ has the type string. In the _value_, that field is of type number
+* in the JSON test data, there is an attribute with the key _Name_. In the value class _MyValue_, that field is called _name_. This will let the mapping fail if we run that code in production.
+* in the JSON test data, the attribute _yearOfBirth_ is of type string. In _MyValue_, the field _yearOfBirth_ is of type number. Depending on the behavior of the mapper, this implicit type conversion might work in production or not.
 
 Although our tests pass, the underlying code does not work correctly. It will not be able to handle the JSON payload as expected. Our
-test is not very accurate because a mock is now providing the central behavior of our class under test. The test becomes relatively meaningless by that.
+test is inaccurate because now some crucial behavior of our class under test is replaced by a mock. The test becomes relatively meaningless by that.
 
-Mocking third-party dependencies like the ObjectMapper can often lead to these problems. Tests become inaccurate and fragile.
-Third-party dependencies can and will change, and mocking them may not reflect their actual behavior. It's very likely that the developer of the tests makes wrong assumptions about how the mapper behaves and configures the mock based on those incorrect assumptions.
+Mocking third-party dependencies, as seen here, can often lead to these problems. Tests become inaccurate and fragile.
+Third-party dependencies can and will change, and mocking them may not reflect their actual behavior. The developer of the tests likely makes wrong assumptions about how the mapper behaves and configures the mock based on those incorrect assumptions.
 
-Making wrong assumptions is most probably with a complex beast like the ObjectMapper.
+Making wrong assumptions will probably happen with a complex beast like the ObjectMapper.
 Its behavior does not just depend on which methods our code directly calls. The mapper also needs to be appropriately configured.
 
 As we want our tests to be meaningful and accurate, we generally avoid mocking ObjectMapper in tests. Instead, we use an actual mapper.
 
 Luckily, this is a relatively easy change. An ObjectMapper is easy to create by invoking its constructor: `new ObjectMapper()`[^1].
-We modify our test to use an actual mapper instead of a mocked one:
+We modified our test to use an actual mapper instead of a mocked one:
 
 {% highlight java %}
 @ExtendWith(MockitoExtension.class)
@@ -147,13 +145,13 @@ We now get better feedback about the state of our code and can either fix our im
 
 Of course, this problem is wider than the ObjectMapper.
 Most third-party code we typically use is rather complex, especially when this code communicates with external systems like databases or message brokers.
-As shown with the ObjectMapper, it is advisable to follow the guideline to not mock third-party code. The risk-benefit ratio is not worth it. 
+As shown with the ObjectMapper, it is advisable to follow the guideline to not mock third-party code. The risk-benefit ratio is not worth it.
 The Mockito documentation even mentions this in the article about [How to write good tests][mockito-how].
 
 Switching from an ObjectMapper mock to a real one was relatively easy in our example.
-With some of the dependencies mentioned above, it may not be easy.
-If, for example, we want to use an actual Database client in our test, we would also need a real database to connect to.
-This is the realm of integration testing and a topic on its own.
+With some of the dependencies mentioned above, it may be more difficult.
+If we need to use an actual database client to test our code, we'll also need an actual database so that the database client has something it can connect to.
+Writing tests interacting with external systems is the realm of integration testing and a separate topic, which we will not cover today.
 
 # Conclusion
 
