@@ -1,0 +1,10 @@
+@startuml
+
+class MyService
+class ObjectMapper
+class MyOtherService
+
+MyService -- MyOtherService
+MyService o-- ObjectMapper
+
+@enduml
