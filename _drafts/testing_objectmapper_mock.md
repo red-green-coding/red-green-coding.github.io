@@ -6,9 +6,9 @@ categories: [bettertests]
 
 # Overview
 
-In this quick article, we'll show _why you shouldn't mock an ObjectMapper_ in your tests.
+In this short article, we'll show _why you shouldn't mock an ObjectMapper_ in your tests.
 We assume you have a general understanding of Java, Unit testing, and Mocking with Mockito.
-Here is a [Tutorial][mockito-tutorial] to refresh your knowledge about the annotations used in our code samples.
+Here is a [tutorial][mockito-tutorial] to refresh your knowledge about the annotations used in our code samples.
 
 # The problem
 
@@ -21,27 +21,27 @@ First, let's look at a source code example and then understand why this guidelin
 {% highlight java %}
 public record MyValue(String name, int yearOfBirth) { }
 
-public class MyOtherService {
+public class CollaboratorService {
     public void useValue(MyValue v) { ... }
 }
 
 public class MyService1 {
     private ObjectMapper mapper;
-    private MyOtherService myOtherService;
+    private CollaboratorService CollaboratorService;
 
-    MyService1(MyOtherService myOtherService, ObjectMapper mapper) {
-        this.myOtherService = myOtherService;
+    MyService1(CollaboratorService CollaboratorService, ObjectMapper mapper) {
+        this.CollaboratorService = CollaboratorService;
         this.mapper = mapper;
     }
 
     void useData(String json) {
         var dto = mapper.readValue(json, MyValue.class);
-        myOtherService.useValue(dto);
+        CollaboratorService.useValue(dto);
     }
 }
 {% endhighlight %}
 
-The code example consists of a value class _MyValue_, the class _MyService_ we want to test, and the class _MyOtherService_, which is
+The code example consists of a value class _MyValue_, the class _MyService_ we want to test, and the class _CollaboratorService_, which is
 a dependency of MyService. This a trimmed-down example of code that we could often find in existing codebases.
 
 Now, let's look at the corresponding test.
@@ -54,7 +54,7 @@ public class MyService1Test {
     MyService1 myService;
 
     @Mock
-    MyOtherService myOtherService;
+    CollaboratorService CollaboratorService;
 
     @Mock
     ObjectMapper mapper;
@@ -70,7 +70,7 @@ public class MyService1Test {
 
         myService.useData(data);
 
-        Mockito.verify(myOtherService)
+        Mockito.verify(CollaboratorService)
             .useValue(Mockito.argThat(arg -> arg.name().equals("MyName")));
     }
 }
@@ -95,8 +95,9 @@ Its behavior does not just depend on which methods our code directly calls. The 
 
 As we want our tests to be meaningful and accurate, we generally avoid mocking ObjectMapper in tests. Instead, we use an actual mapper.
 
-Luckily, this is a relatively easy change. An ObjectMapper is easy to create by invoking its constructor: `new ObjectMapper()`[^1].
-We modified our test to use an actual mapper instead of a mocked one:
+Luckily, this is a relatively easy change. We will re-use a pre-configured shared mapper instance 
+to ensure the test and production code use the same mapper configuration.
+Re-using a shared instance mapper is a general good practice[^1].
 
 {% highlight java %}
 @ExtendWith(MockitoExtension.class)
@@ -106,11 +107,11 @@ public class MyService2Test {
     MyService1 myService;
 
     @Mock
-    MyOtherService myOtherService;
+    CollaboratorService CollaboratorService;
 
     //Use a real mapper instead of a mock
     @Spy
-    ObjectMapper mapper;
+    ObjectMapper mapper = MapperConfig.configuredMapper();
 
     @Test
     void canConsumeJson() throws Exception {
@@ -122,13 +123,13 @@ public class MyService2Test {
 
         myService.useData(data);
 
-        Mockito.verify(myOtherService)
+        Mockito.verify(CollaboratorService)
             .useValue(Mockito.argThat(arg -> arg.name().equals("MyName")));
     }
 }
 {% endhighlight %}
 
-By using a _@Spy_ annotation, we are still letting Mockito do the wiring. Instead of creating a mock, it will create an actual ObjectMapper instance. When we re-run
+By using a _@Spy_ annotation, we are still letting Mockito do the wiring. Instead of creating a mock, it will use the provided ObjectMapper instance. When we re-run
 the test, we can see that it now fails:
 
 {% highlight bash %}
@@ -156,7 +157,7 @@ Writing tests interacting with external systems is the realm of integration test
 # Conclusion
 
 This article explained why you should avoid mocking the _ObjectMapper_ in your unit tests.
-Instead, we show that testing using an actual mapper instance is more accurate.
+Instead, we show that testing using an actual mapper instance is more beneficial.
 
 Find the source code of our examples on [GitHub][github-examples].
 
@@ -167,7 +168,8 @@ Check out the [Mockito documentation][mockito] for more info on how to use Mocki
 [jackson]: https://github.com/FasterXML/jackson-docs
 [mockito-how]: https://github.com/mockito/mockito/wiki/How-to-write-good-tests#dont-mock-a-type-you-dont-own
 [github-examples]: https://github.com/red-green-coding/bettertests-objectmapper-mock
+[javadoc]: https://fasterxml.github.io/jackson-databind/javadoc/2.7/com/fasterxml/jackson/databind/ObjectMapper.html
 
 # Notes
 
-[^1]: In an actual project, we would re-use the application's mapper instead of creating a new one.
+[^1]: The ObjectMapper is threadsafe ([javadoc][javadoc]), so it's generally safe to re-use and share it throughout the code
