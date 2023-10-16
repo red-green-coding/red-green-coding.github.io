@@ -27,16 +27,16 @@ public class CollaboratorService {
 
 public class MyService1 {
     private ObjectMapper mapper;
-    private CollaboratorService CollaboratorService;
+    private CollaboratorService collaborator;
 
-    MyService1(CollaboratorService CollaboratorService, ObjectMapper mapper) {
-        this.CollaboratorService = CollaboratorService;
+    MyService1(CollaboratorService collaborator, ObjectMapper mapper) {
+        this.collaborator = collaborator;
         this.mapper = mapper;
     }
 
     void useData(String json) {
         var dto = mapper.readValue(json, MyValue.class);
-        CollaboratorService.useValue(dto);
+        collaborator.useValue(dto);
     }
 }
 {% endhighlight %}
@@ -54,7 +54,7 @@ public class MyService1Test {
     MyService1 myService;
 
     @Mock
-    CollaboratorService CollaboratorService;
+    CollaboratorService collaborator;
 
     @Mock
     ObjectMapper mapper;
@@ -70,7 +70,7 @@ public class MyService1Test {
 
         myService.useData(data);
 
-        Mockito.verify(CollaboratorService)
+        Mockito.verify(collaborator)
             .useValue(Mockito.argThat(arg -> arg.name().equals("MyName")));
     }
 }
@@ -107,7 +107,7 @@ public class MyService2Test {
     MyService1 myService;
 
     @Mock
-    CollaboratorService CollaboratorService;
+    CollaboratorService collaborator;
 
     //Use a real mapper instead of a mock
     @Spy
@@ -123,7 +123,7 @@ public class MyService2Test {
 
         myService.useData(data);
 
-        Mockito.verify(CollaboratorService)
+        Mockito.verify(collaborator)
             .useValue(Mockito.argThat(arg -> arg.name().equals("MyName")));
     }
 }
