@@ -1,8 +1,8 @@
 @startuml
 
 class MyService
-class ObjectMapper
 class MyOtherService
+class ObjectMapper
 
 MyService -- MyOtherService
 MyService o-- ObjectMapper

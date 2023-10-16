@@ -2,7 +2,7 @@
 PLANTUML_FILES := $(shell find assets/plantuml -type f -name '*.plantuml')
 
 # Define a rule to generate PNG files from PlantUML files
-%.svg: %.plantuml
+%.png: %.plantuml
 	docker run --rm -v $(PWD):/data dstockhammer/plantuml $<
 
 # Define the default target and the list of PNG files to build
