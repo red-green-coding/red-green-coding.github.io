@@ -19,24 +19,24 @@ Making refactorings tends to break tests. Changing the functionality even in sma
 large changes to the tests. This will slow down further development and
 Untreated this can decrease the acceptance of automated tests in a project.
 
-## Maintaining the codebase
+# Maintaining the codebase
 
 We are using the same example as in part #1.
 
 {% highlight java %}
 public class MyService1 {
     private ObjectMapper mapper;
-    private CollaboratorService collaboratorService;
+    private CollaboratorService collaborator;
 
-    MyService1(CollaboratorService collaboratorService, ObjectMapper mapper) {
-        this.collaboratorService = collaboratorService;
+    MyService1(CollaboratorService collaborator, ObjectMapper mapper) {
+        this.collaborator = collaborator;
         this.mapper = mapper;
     }
 
     void useData(String json) {
         try {
             var dto = mapper.readValue(json, MyValue.class);
-            collaboratorService.useValue(dto);
+            collaborator.useValue(dto);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -54,7 +54,7 @@ public class MyService2Test {
     MyService1 myService;
 
     @Mock
-    CollaboratorService collaboratorService;
+    CollaboratorService collaborator;
 
     @Spy
     ObjectMapper mapper;
@@ -67,7 +67,7 @@ public class MyService2Test {
 
         myService.useData(data);
 
-        Mockito.verify(collaboratorService)
+        Mockito.verify(collaborator)
             .useValue(Mockito.argThat(arg -> arg.name().equals("MyName")));
     }
 }
@@ -80,17 +80,17 @@ an implementation detail.
 {% highlight java %}
 public class MyService3 {
     private Gson mapper;
-    private MyOtherService myOtherService;
+    private CollaboratorService collaborator;
 
-    MyService3(Gson mapper, MyOtherService myOtherService) {
+    MyService3(Gson mapper, CollaboratorService collaborator) {
         this.mapper = mapper;
-        this.myOtherService = myOtherService;
+        this.collaborator = collaborator;
     }
 
     void useData(String json) {
         try {
             var dto = mapper.fromJson(json, MyDto.class);
-            myOtherService.useDto(dto);
+            collaborator.useDto(dto);
         } catch (JsonSyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -109,7 +109,7 @@ sample.MyService3Test
         because "this.mapper"
 {% endhighlight %}
 
-## Test code should be decoupled from the code it tests
+# Test code should be decoupled from the code it tests
 
 The reason is that our test now didn't construct the code under test correctly.
 Of course we could fix that by modifiying the test but still this is
@@ -126,10 +126,10 @@ or reference a shared, static instance.
 {% highlight java %}
 public class MyService4 {
     private Gson mapper = new Gson();
-    private CollaboratorService collaboratorService;
+    private CollaboratorService collaborator;
 
-    MyService4(CollaboratorService collaboratorService) {
-        this.collaboratorService = collaborator;
+    MyService4(CollaboratorService collaborator) {
+        this.collaborator = collaborator;
     }
 
     void useData(String json) {
@@ -181,6 +181,6 @@ Don't put all dependencies into the constructor, distinguish between actual coll
 
 # Notes
 
-[part-1]: /bettertests/2023/10/16/testing_objectmapper_mock.html
+[part-1]: {% post_url 2023-10-16-testing_objectmapper_mock %}
 [test-contravariance]: https://blog.cleancoder.com/uncle-bob/2017/10/03/TestContravariance.html
 [gson]: https://github.com/google/gson
