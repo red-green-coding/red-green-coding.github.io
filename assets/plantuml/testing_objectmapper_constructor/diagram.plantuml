@@ -5,6 +5,6 @@ class MyOtherService
 class ObjectMapper
 
 MyService -- MyOtherService
-MyService o-- ObjectMapper
+MyService *-- ObjectMapper
 
 @enduml

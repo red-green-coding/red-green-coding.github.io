@@ -6,18 +6,20 @@ categories: [bettertests]
 
 # Overview
 
-In [part #1][part-1] of this article we showed _why you shouldn't mock an ObjectMapper_ in your tests.
-In the article we showed how we can improve our test code to be more meaningful and accurate by not
-mocking third-party code in our tests. Instead we advocated to test using actual third-party code dependencies.
-Today we want to go a step further and improve quality and maintainability of our tests by _decoupling 
+In [part #1][part-1] of this article, we showed _why you shouldn't mock an ObjectMapper_ in your tests.
+The article showed how to improve our test code to be more meaningful and accurate by not
+mocking third-party code in your tests. Instead, we advocated to test using actual third-party code dependencies.
+
+
+Today, we want to go a step further and improve the quality and maintainability of our tests by _decoupling
 our test code from the production code_.
 
 # The problem
 
-When test code and production code is too tightly coupled maintaining the codebase becomes more difficult.
-Making refactorings tends to break tests. Changing the functionality even in small ways then often cause 
-large changes to the tests. This will slow down further development and
-Untreated this can decrease the acceptance of automated tests in a project.
+Maintaining the codebase becomes more complicated when test and production code are too tightly coupled.
+Making refactorings tends to break tests. Changing the functionality, even in small ways, often causes
+significant, rippling test changes. This will slow down further development and
+Untreated, this can decrease the acceptance of automated tests in a project.
 
 # Maintaining the codebase
 
@@ -25,8 +27,8 @@ We are using the same example as in part #1.
 
 {% highlight java %}
 public class MyService1 {
-    private ObjectMapper mapper;
-    private CollaboratorService collaborator;
+private ObjectMapper mapper;
+private CollaboratorService collaborator;
 
     MyService1(CollaboratorService collaborator, ObjectMapper mapper) {
         this.collaborator = collaborator;
@@ -44,7 +46,7 @@ public class MyService1 {
 }
 {% endhighlight %}
 
-We are using the updated version of the test
+We are using the latest version of the test
 
 {% highlight java %}
 @ExtendWith(MockitoExtension.class)
@@ -73,14 +75,13 @@ public class MyService2Test {
 }
 {% endhighlight %}
 
-Lets assume now that for maintenance reason we want to switch to the alternative JSON mapper implementation [Gson][gson].
-We consider this to be a refactoring. The functionality of our class is not supposed to change, we are just changing
-an implementation detail.
+Let's assume now that for maintenance reason, we want to switch to the alternative JSON mapper implementation [Gson][gson].
+This is a refactoring as we only want to change an implementation detail, not the general functionality.
 
 {% highlight java %}
 public class MyService3 {
-    private Gson mapper;
-    private CollaboratorService collaborator;
+private Gson mapper;
+private CollaboratorService collaborator;
 
     MyService3(Gson mapper, CollaboratorService collaborator) {
         this.mapper = mapper;
@@ -98,7 +99,7 @@ public class MyService3 {
 }
 {% endhighlight %}
 
-When we re-run our tests we see that they are failing now.
+When we re-run our tests, we see that they are failing now.
 
 {% highlight bash %}
 sample.MyService3Test
@@ -111,22 +112,25 @@ sample.MyService3Test
 
 # Test code should be decoupled from the code it tests
 
-The reason is that our test now didn't construct the code under test correctly.
-Of course we could fix that by modifiying the test but still this is
-an unfortunate situation. 
-A test should ideally only focus on the behaviour of the code under test and not make too many assumptions about its internals.
-The problem is caused by the choice to put the ObjectMapper into the constructor of _MyService_.
+The reason is that our test didn't construct the code under test correctly.
+Of course, we could fix that by modifying the test, but still, this situation is unfortunate.
+A test should focus only on the code's externally visible behavior and minimize assumptions about its internals.
 
-As the test needs to know how the class-under-test is to be constructed this knowledge now has leaked into the test.
-The test is closely coupled to the internals of the implementation.
+In the current design, to create an instance of _MyService_, the ObjectMapper needs to be passed in as a constructor parameter.
+This is a design choice we often find in projects that use Dependency injection frameworks like Spring.
 
-To avoid this coupling we remove the mapper parameter from the constructor and instead either create it inside the class
-or reference a shared, static instance.
+In effect, the test needs to know how the class-under-test will be constructed.
+The test is now closely coupled to the internals of the implementation.
+
+# hide implementation details
+
+To avoid this coupling, we can remove the mapper parameter from the constructor and instead either create it inside the class
+or reference a shared, static instance (TODO footnote).
 
 {% highlight java %}
 public class MyService4 {
-    private Gson mapper = new Gson();
-    private CollaboratorService collaborator;
+private Gson mapper = new Gson();
+private CollaboratorService collaborator;
 
     MyService4(CollaboratorService collaborator) {
         this.collaborator = collaborator;
@@ -167,17 +171,33 @@ public class MyService4Test {
 }
 {% endhighlight %}
 
-This serves a number of purposes:
+This serves several purposes:
 * The mapper now is an implementation detail of _MyService_. Our test does not need to be concerned to provide a mapper.
-* We are able to switch mapper libraries without the need to touch the test. 
+* Consequently, we can now switch mapper libraries without needing to modify the test.
 
-From a design point of view we have changed the relationship between _MyService_ to the mapper from an association to an aggregation.
+From a design point of view, we have changed the relationship between _MyService_ and the mapper from an association to an aggregation. MyService now "owns" the mapper.
+Looking at the constructor of MyService, we still need to pass in an instance of _CollaboratorService_. This makes sense, as CS is another functional component of our system
+that exists independently of MyService.
 
 ![diagram](/assets/plantuml/testing_objectmapper_constructor/diagram.png)
 
+We often find this problematic pattern in projects that use DI frameworks like Spring and Mocking frameworks like Mockito in the tests.
+With DI frameworks, people tend to put all dependencies into the constructor as it is the easiest thing.
+With Mocking frameworks, people tend to mock everything.
+
+Both are poor choices.
+
+We should distinguish between collaborators and implementation details when we add dependencies to a class. When testing, we should carefully decide
+if we want to replace the dependency of a class with a mock or use an actual implementation instead.
+
+Applying Test-driven development gives you feedback about these kinds of problems. Listen to the tests. If something is not easy to test, then modify your design
+to make it easier to test things.
+
 # Conclusion
 
-Don't put all dependencies into the constructor, distinguish between actual collaborators and potential implementation details
+In this article, we showed how you can improve the quality of your unit tests by
+decoupling the test logic from the internals of the production code.
+This provides tests that don't require modification when we apply refactorings to the production code.
 
 # Notes
 
