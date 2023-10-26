@@ -94,7 +94,6 @@ In most cases we recommend to just use a static field like
 ```java
 public static final ObjectMapper mapper = new ObjectMapper().registerModule(new ParameterNamesModule());
 ```
-Of course if you use it inside a singleton like a Spring component, having it as an instance property is fine as well.
 
 If you cannot for some reason be sure that the configuration will not change during runtime, the recommendation is to
 > Construct and use ObjectReader for reading, ObjectWriter for writing. Both types are fully immutable ...
@@ -114,3 +113,5 @@ In such situations, opting for ObjectMappers with distinct configurations become
 # Conclusion
 The benchmarks show a huge difference in runtime cost between creating new instances and reusing existing ones.
 As the ObjectMapper is threadsafe, we recommend to just assign it to a public static final variable and use it wherever you comminucate with same JSON dialect.
+
+TODO: reference related posts
