@@ -215,18 +215,17 @@ These choices will have an effect on the quality of
 the tests and, consequently, on the maintainability of our codebase.
 
 Of course, this is just a tiny example. In real-world projects with tests that are too tightly coupled with production code,
-small changes often cause many tests to fail for many more reasons than we looked at here. In addition to what we discussed here,
+small changes often cause many tests to fail for many more reasons than we looked at here. In these projects the effort required
+to fix these test issues can seriously slow down ongoing development, also it can reduce the further adoption of test-driven 
+development as people conclude unit tests hinder development.
+
+In addition to what we discussed here,
 there are many more things
 we need to consider to avoid coupling the test code to the production code too much.
 
-Applying Test-driven development gives you feedback about these kinds of problems. Listen to the tests. If something is not easy to test, then modify your design
+Applying Test-driven development gives you feedback about these kinds of things. Listen to the tests. If something is not easy to test, then modify your design
 to make it easier to test things. The main benefit of Test-driven development is that you get this feedback early on in the lifetime of some code.
 If you listen to this feedback and design your code accordingly you will end up with modular code, that is testable and can be modified easily.
-
-We do this as otherwise the
-time needed to fix these tests can seriously slow down ongoing development
-and reduce the further adoption of test-driven development
-as people conclude that unit tests hinder development.
 
 # Conclusion
 
