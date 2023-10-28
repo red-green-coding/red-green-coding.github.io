@@ -15,7 +15,7 @@ our test code from the production code_.
 
 # The problem
 
-Maintaining the codebase can become more complicated when test and production code is too tightly coupled.
+Maintaining the codebase can become more complicated when test and production code are too tightly coupled.
 When test and production code is too tightly coupled,
 adding functionality, even in small ways, causes many tests to break, often in unrelated locations.
 
@@ -132,8 +132,22 @@ Let's look at how we can improve the situation by decoupling the test from the p
 
 # hide implementation details
 
-We will hide the implementation details by removing the mapper parameter from the constructor. Instead, we create the mapper inside our class or
-or reference a shared, static instance.
+The underlying problem here is that in the initial design, there is no differentiation between implementation details
+and actual collaborators. All dependencies are passed into the constructor.
+
+We often find this pattern to put all dependencies of a class in its constructor in projects that use dependency injection frameworks.
+Dependency injection frameworks make it easy to structure your code like that, as the framework will do all the construction work for you.
+
+This ease is continued by the use of mocking frameworks like [Mockito][mockito], as it again makes it very easy to create our class and just mock
+all of its dependencies.
+
+These seemingly effortless choices can hurt the long-term maintainability of our codebase as they also tend to allow unintentional coupling between test and production code to creep into the codebase.
+
+In addition, people often tend to follow the advice to have one test per unit (e.g., class, function), which can lead to tight coupling, too.
+
+To improve the design, we will hide the implementation details by removing the mapper parameter from the constructor.
+Instead, we create the mapper inside our class or
+reference a shared, static instance.
 
 {% highlight java %}
 public class MyService4 {
@@ -180,40 +194,36 @@ public class MyService4Test {
 {% endhighlight %}
 
 The change serves several purposes:
-* The mapper now is an implementation detail of _MyService_. Our test does not need to be concerned to provide a mapper.
-* Consequently, we can now switch mapper libraries without modifying the test.
+* The mapper now is an implementation detail of _MyService_. The test does not need to be concerned to provide a mapper.
+* Consequently, we can now switch mapper implementations without modifying the test.
 
-Looking at the constructor of MyService, we still need to pass in an instance of _CollaboratorService_.
-From a design point of view, this is sensible, as _CollaboratorService_ is another functional component of our system, which exists independently of MyService.
+Looking at the constructor of _MyService_, we still need to pass in an instance of _CollaboratorService_.
+From a design point of view, this is sensible, as _CollaboratorService_ is another functional component of our system, which exists independently of _MyService_.
 
 We can also express this changed relationship in a UML diagram with association vs. aggregation
 * association: MyService _knows_ a CollaboratorService
-* aggregation: MyService _owns_ a mapper (footnote: impl detail)
+* aggregation: MyService _owns_ a mapper[^1]
 
 ![diagram](/assets/plantuml/testing_objectmapper_constructor/diagram.png)
 
-The underlying problem here is that in the initial design, there is no  differentiation between implementation details
-and actual collaborators. All dependencies are passed into the constructor.
-
-We often find this pattern to put all dependencies of a class in its constructor in projects that use dependency injection frameworks. Dependency injection frameworks make it easy to structure your code like that, as the framework will do all the construction work for you.
-
-This ease is continued by the use of mocking frameworks like Mockito, as it again makes it very easy to create our class and just mock
-all of its dependencies.
-
-The problem is that these seemingly effortless choices can hurt the long-term maintainability of our codebase.
-In our example, the test needs internal knowledge about the production code to construct it for testing.
-
-To improve the design, we should distinguish between collaborators and implementation details when we add dependencies to a class.
-When testing, we should carefully decide
-if we want to replace the dependency of a class with a mock or use an actual implementation instead. These choices will have an effect on the quality of
+When adding dependencies to our code, we should distinguish between collaborators and implementation details.
+When writing tests, we should carefully decide
+if we want to replace the dependency of a class with a mock or use an actual implementation instead[^2].
+These choices will have an effect on the quality of
 the tests and, consequently, on the maintainability of our codebase.
 
 Applying Test-driven development gives you feedback about these kinds of problems. Listen to the tests. If something is not easy to test, then modify your design
 to make it easier to test things.
 
 Of course, this is just a tiny example. In real-world projects with tests that are too tightly coupled with production code,
-small changes often cause many tests to fail. The time needed to fix these tests can seriously slow down ongoing development and reduce the further adoption of test-driven development
-as people conclude that tests hinder development.
+small changes often cause many tests to fail for many more reasons than we looked at here. In addition to what we discussed here,
+there are many more things
+we need to consider to avoid coupling the test code to the production code too much.
+
+We do this as otherwise the
+time needed to fix these tests can seriously slow down ongoing development
+and reduce the further adoption of test-driven development
+as people conclude that unit tests hinder development.
 
 # Conclusion
 
@@ -223,11 +233,15 @@ decoupling tests from production code.
 We achieved this by modifying the design of our production code to better distinguish between implementation details
 and required dependencies.
 
-This allows us to have tests with less knowledge about the internals of the production code.
-These tests allow us to refactor more while requiring fewer test changes afterward.
+These design changes allow us to have tests with less knowledge about the internals of the production code.
+Tests written that way allow us to refactor more while requiring fewer test changes afterward.
 
 # Notes
 
+[^1]: We would still consider this to be an _aggregation_ even if you are referencing a shared mapper. The fact that the mapper is shared is just an implementation detail.
+[^2]: Remember to avoid mocking third-party code (see [Part #1][part-1]).
+
 [part-1]: {% post_url 2023-10-16-testing_objectmapper_mock %}
+[mockito]: https://site.mockito.org/
 [gson]: https://github.com/google/gson
 [test-contravariance]: https://blog.cleancoder.com/uncle-bob/2017/10/03/TestContravariance.html
