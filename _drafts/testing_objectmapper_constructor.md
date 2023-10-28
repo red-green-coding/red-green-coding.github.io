@@ -36,8 +36,8 @@ We use the same example from [part #1][part-1] of this article.
 
 {% highlight java %}
 public class MyService1 {
-private ObjectMapper mapper;
-private CollaboratorService collaborator;
+    private ObjectMapper mapper;
+    private CollaboratorService collaborator;
 
     MyService1(CollaboratorService collaborator, ObjectMapper mapper) {
         this.collaborator = collaborator;
@@ -89,8 +89,8 @@ For example, we want to switch the JSON mapper from Jackon to the alternative im
 
 {% highlight java %}
 public class MyService3 {
-private Gson mapper;
-private CollaboratorService collaborator;
+    private Gson mapper;
+    private CollaboratorService collaborator;
 
     MyService3(Gson mapper, CollaboratorService collaborator) {
         this.mapper = mapper;
@@ -206,19 +206,22 @@ We can also express this changed relationship in a UML diagram with association 
 
 ![diagram](/assets/plantuml/testing_objectmapper_constructor/diagram.png)
 
+# Listen to the tests
+
 When adding dependencies to our code, we should distinguish between collaborators and implementation details.
 When writing tests, we should carefully decide
 if we want to replace the dependency of a class with a mock or use an actual implementation instead[^2].
 These choices will have an effect on the quality of
 the tests and, consequently, on the maintainability of our codebase.
 
-Applying Test-driven development gives you feedback about these kinds of problems. Listen to the tests. If something is not easy to test, then modify your design
-to make it easier to test things.
-
 Of course, this is just a tiny example. In real-world projects with tests that are too tightly coupled with production code,
 small changes often cause many tests to fail for many more reasons than we looked at here. In addition to what we discussed here,
 there are many more things
 we need to consider to avoid coupling the test code to the production code too much.
+
+Applying Test-driven development gives you feedback about these kinds of problems. Listen to the tests. If something is not easy to test, then modify your design
+to make it easier to test things. The main benefit of Test-driven development is that you get this feedback early on in the lifetime of some code.
+If you listen to this feedback and design your code accordingly you will end up with modular code, that is testable and can be modified easily.
 
 We do this as otherwise the
 time needed to fix these tests can seriously slow down ongoing development
@@ -234,7 +237,7 @@ We achieved this by modifying the design of our production code to better distin
 and required dependencies.
 
 These design changes allow us to have tests with less knowledge about the internals of the production code.
-Tests written that way allow us to refactor more while requiring fewer test changes afterward.
+Tests written that way allow us to add features and make refactorings more easily while breaking fewer unrelated tests. 
 
 # Notes
 
