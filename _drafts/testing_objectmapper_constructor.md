@@ -19,15 +19,15 @@ Maintaining the codebase can become more complicated when test and production co
 When test and production code is too tightly coupled,
 adding functionality, even in small ways, causes many tests to break, often in unrelated locations.
 
-Another area is refactorings. We usually want to improve our code base by doing
-structural changes that don't change external behavior. With too tightly coupled test and production code, these
+Another area is refactorings. We want to be able improve our code base by doing
+structural changes that don't change observable behavior. With too tightly coupled test and production code, these
 refactorings tend to break many tests, though the code still behaves correctly.
 
-Fixing these test failures is an arduous and risky task, as you need to introduce even more changes to the code.
+Fixing these test failures can become arduous and is a risky task, as you need to introduce even more changes to the code.
 Adding new functionality over time becomes more and more cumbersome.
 Refactorings are often avoided as they cause rippling changes through the test code.
 
-If not treated, this process will gradually reduce the quality of the tests, slowing future development even more.
+If not treated, this process will gradually reduce the quality of the codebase, slowing down future development even more.
 
 # Maintaining the codebase
 
@@ -122,7 +122,7 @@ sample.MyService3Test
 # Test code should be decoupled from the code it tests
 
 The reason the test is failing is that the test didn't construct the class under test correctly.
-To fix that, we would also need to modify the test. This is the exact situation we want to avoid.
+To fix that, we would also need to modify the test. This required change is the exact situation we wanted to avoid.
 
 The root cause here is the design choice to put the ObjectMapper as a parameter into the constructor of our class.
 In consequence, our test also needs to know which mapper implementation the production code uses so it can construct the test subject.
@@ -146,13 +146,13 @@ These seemingly effortless choices can hurt the long-term maintainability of our
 In addition, people often tend to follow the advice to have one test per unit (e.g., class, function), which can lead to tight coupling, too.
 
 To improve the design, we will hide the implementation details by removing the mapper parameter from the constructor.
-Instead, we create the mapper inside our class or
+Instead, we create the mapper inside our class. Alternatively we could 
 reference a shared, static instance.
 
 {% highlight java %}
 public class MyService4 {
-private Gson mapper = new Gson();
-private CollaboratorService collaborator;
+    private Gson mapper = new Gson();
+    private CollaboratorService collaborator;
 
     MyService4(CollaboratorService collaborator) {
         this.collaborator = collaborator;
@@ -200,9 +200,9 @@ The change serves several purposes:
 Looking at the constructor of _MyService_, we still need to pass in an instance of _CollaboratorService_.
 From a design point of view, this is sensible, as _CollaboratorService_ is another functional component of our system, which exists independently of _MyService_.
 
-We can also express this changed relationship in a UML diagram with association vs. aggregation
-* association: MyService _knows_ a CollaboratorService
-* aggregation: MyService _owns_ a mapper[^1]
+We can also express this changed relationship in a UML diagram by using _association_ and _aggregation_:
+* association: MyService _knows_ a CollaboratorService,
+* aggregation: MyService _owns_ a mapper.[^1]
 
 ![diagram](/assets/plantuml/testing_objectmapper_constructor/diagram.png)
 
@@ -210,12 +210,12 @@ We can also express this changed relationship in a UML diagram with association 
 
 When adding dependencies to our code, we should distinguish between collaborators and implementation details.
 When writing tests, we should carefully decide
-if we want to replace the dependency of a class with a mock or use an actual implementation instead[^2].
+if we want to replace the dependency of a class with a mock or use an actual implementation instead.[^2]
 These choices will have an effect on the quality of
 the tests and, consequently, on the maintainability of our codebase.
 
 Of course, this is just a tiny example. In real-world projects with tests that are too tightly coupled with production code,
-small changes often cause many tests to fail for many more reasons than we looked at here. In these projects the effort required
+small changes often cause many tests to fail for many more reasons than we looked at here today. In these projects the effort required
 to fix these test issues can seriously slow down ongoing development, also it can reduce the further adoption of test-driven 
 development as people conclude unit tests hinder development.
 
@@ -223,7 +223,7 @@ In addition to what we discussed here,
 there are many more things
 we need to consider to avoid coupling the test code to the production code too much.
 
-Applying Test-driven development gives you feedback about these kinds of things. Listen to the tests. If something is not easy to test, then modify your design
+Applying Test-driven development gives you feedback about these kinds of things: _Listen to the tests_! If something is not easy to test, then modify your design
 to make it easier to test things. The main benefit of Test-driven development is that you get this feedback early on in the lifetime of some code.
 If you listen to this feedback and design your code accordingly you will end up with modular code, that is testable and can be modified easily.
 
