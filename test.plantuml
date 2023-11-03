@@ -1,0 +1,40 @@
+@startjson
+
+{
+  "partitionKey": "my partition key",
+  "sortKey": 12345,
+  "mapAttribute": {
+    "key 1": "value 1",
+    "key 2": "value 2"
+  },
+  "stringAttribute": "my string value",
+  "listAttribute": [
+    "A",
+    "B",
+    "A"
+  ],
+  "setAttribute": [
+    "A",
+    "B"
+  ],
+  "nestedAttribute": [
+    {
+      "attribute": "value",
+      "list": [
+        1,
+        2,
+        3
+      ],
+      "map": {
+        "k": 1
+      }
+    },
+    {
+          "attribute": "value",
+          "list": [3,4,5]
+        }
+  ],
+  "nullAttribute": null
+}
+
+@endjson
