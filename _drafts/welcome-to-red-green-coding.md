@@ -4,12 +4,18 @@ title:  "Welcome to red green coding!"
 categories: [welcome]
 ---
 
-We are a team of passionate software developers with broad experience in the JVM ecosystem. Our main focus is
-backend application development and we have worked with various languages like Java, Kotlin, Groovy, and Scala over the years.
-We know how to use Application development frameworks like Java EE, Spring, and OSGi.
-With Different SQL and NoSQL databases. With Event/messaging systems like Kafka, JMS, and Kinesis.
-And with front-end libraries like react and angular.
+Dear visitor,
 
-We advocate Test-driven development and Continuous delivery, as it is the best way to reliably and replicable deliver software.
+We are excited to welcome you to our blog, where we will share our thoughts
+and experiences on topics from our work as software developers.
+We mainly work on backend services running on the JVM.
+In our work, we strive to improve our understanding of technologies and
+make our development processes more productive.
+We advocate test-driven development and continuous
+deployment.
 
-In this blog, we want to ...
+Together, we have 30 years of experience.
+We have worked across several domains and have used a variety of technologies and tools.
+We are currently supporting companies as freelancers.
+
+Please contact us with any thoughts, opinions or questions.
