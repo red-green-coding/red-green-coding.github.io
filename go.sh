@@ -10,8 +10,9 @@ goal_serve() {
     --volume="$PWD/vendor/bundle:/usr/local/bundle:Z" \
     --env FORCE_POLLING=true \
     -p 4000:4000 \
+    -p 40000:40000 \
     -it jekyll/builder:$JEKYLL_VERSION \
-    jekyll serve --drafts
+    jekyll serve --drafts --livereload --livereload_port 40000 --force_polling --incremental
 }
 
 goal_build() {
