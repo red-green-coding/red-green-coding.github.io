@@ -15,11 +15,11 @@ our test code from the production code_.
 
 # The problem
 
-Maintaining the codebase can become more complicated when test and production code are too tightly coupled.
+Maintaining the codebase can become more complicated when test and production code is too tightly coupled.
 When test and production code is too tightly coupled,
-adding functionality, even in small ways, causes many tests to break, often in unrelated locations.
+adding functionality, even in small ways, causes tests to break, often in unrelated locations.
 
-Another area is refactorings. We want to improve our code base by doing
+Another area are refactorings[^3]. We want to improve our code base by doing
 structural changes that don't change observable behavior. With too tightly coupled test and production code, these
 refactorings tend to break many tests, though the code still behaves correctly.
 
@@ -131,7 +131,7 @@ _The tests are too tightly coupled to the production code_.
 
 Let's look at how we can improve the situation by decoupling the test from the production code.
 
-# hide implementation details
+# Hiding implementation details
 
 The underlying problem here is that in the initial design, there is no differentiation between implementation details
 and actual collaborators. All dependencies are just passed into the constructor.
@@ -146,11 +146,11 @@ These seemingly effortless choices can hurt the long-term maintainability of our
 unintentional coupling between test and production code to creep into the codebase.
 
 In addition, people often tend to follow the advice to have one test per unit (e.g., class, function), which can lead
-to tight coupling, too.
+to tight coupling, as then the structure of the tests mirrors the structure of the code too closely.
 
 To improve the design, we will hide the implementation details by removing the mapper parameter from the constructor.
 Instead, we create the mapper inside our class. Alternatively, we could
-reference a shared, static instance.
+reference a shared, static instance if we need to be sure to use a similiarily configured mapper in multiple places.
 
 {% highlight java %}
 public class MyService4 {
@@ -204,6 +204,10 @@ Looking at the constructor of _MyService_, we still need to pass in an instance 
 From a design point of view, this is sensible, as _CollaboratorService_ is another functional component of our system,
 which exists independently of _MyService_.
 
+Making this dependency explicit helps us to
+* better understand our system and its functional dependencies and
+* we can still replace _CollaboratorService_ during tests with a mock.
+
 We can also express this changed relationship in a UML diagram by using _association_ and _aggregation_:
 * association: MyService _knows_ a CollaboratorService,
 * aggregation: MyService _owns_ a mapper.[^1]
@@ -219,7 +223,7 @@ These choices will have an effect on the quality of
 the tests and, consequently, on the maintainability of our codebase.
 
 Of course, this is just a tiny example. In real-world projects with tests that are too tightly coupled with production code,
-small changes often cause many tests to fail for many more reasons than we look at here today. In these projects, the effort required
+small changes often cause many tests to fail for many more reasons than we looked at here today. In these projects, the effort required
 to fix these test issues can seriously slow down ongoing development. It can also reduce the further adoption of test-driven
 development, as people conclude, unit tests hinder development.
 
@@ -227,7 +231,7 @@ In addition to what we discussed here,
 there are many more things
 we need to consider to avoid coupling the test code to the production code too much.
 
-Applying Test-driven development gives you feedback about these things: _Listen to the tests_! If something is challenging to test, it is often also difficult to use. Reconsider and modify your design
+Applying Test-driven development gives you feedback about these things: Listen to that feedback, _Listen to the tests_! If something is challenging to test, it is often also difficult to use. Reconsider and modify your design
 to make it easier to test things. The main benefit of Test-driven development is that you get this feedback early on in the lifetime of some code.
 If you listen to this feedback and design your code accordingly, you will end up with modular code that is testable and can be modified easily.
 
@@ -240,20 +244,23 @@ We achieved this by modifying the design of our production code to better distin
 and required dependencies.
 
 These design changes allow us to have tests with less knowledge about the internals of the production code.
-Tests written that way allow us to add features and make refactorings more easily while breaking fewer unrelated tests.
-
-Find the source code of our examples on [GitHub][github-examples].
+Tests written that way are less coupled to the application code and allow us to add features and make refactorings more easily while breaking fewer unrelated tests.
 
 Check out Uncle Bob's Blog and read his article [Test Contra-variance][test-contravariance] that
 partly served as an inspiration for this article.
+
+Find the source code of our examples on [GitHub][github-examples].
 
 # Notes
 
 [^1]: We would still consider this to be an _aggregation_ even if you are referencing a shared mapper. The fact that the mapper is shared is just an implementation detail.
 [^2]: Remember to avoid mocking third-party code (see [Part #1][part-1]).
+[^3]: _Refactoring is a disciplined technique for restructuring an existing body of code, altering its internal structure without changing its external behavior._ (see [Refactoring.com][refactoring])
+
 
 [part-1]: {% post_url 2023-10-16-testing_objectmapper_mock %}
 [mockito]: https://site.mockito.org/
 [gson]: https://github.com/google/gson
 [test-contravariance]: https://blog.cleancoder.com/uncle-bob/2017/10/03/TestContravariance.html
 [github-examples]: https://github.com/red-green-coding/bettertests-objectmapper-mock
+[refactoring]: https://refactoring.com/
