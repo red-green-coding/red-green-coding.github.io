@@ -21,7 +21,11 @@ goal_build() {
     --volume="$PWD/vendor/bundle:/usr/local/bundle:Z" \
     --env JEKYLL_ENV=production \
     jekyll/builder:$JEKYLL_VERSION \
-    jekyll build
+    jekyll build --trace
+}
+
+goal_clean() {
+    rm -rf vendor _site .sass-cache .jekyll-metadata
 }
 
 goal_help() {
