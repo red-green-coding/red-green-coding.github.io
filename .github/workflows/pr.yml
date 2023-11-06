@@ -1,0 +1,16 @@
+name: PR build
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build with Jekyll
+        # Outputs to the './_site' directory by default
+        run: |
+          mkdir -p _site
+          ./go.sh build
