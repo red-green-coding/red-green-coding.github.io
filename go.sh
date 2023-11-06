@@ -15,10 +15,14 @@ goal_build() {
   goal_docker
   rm -rf _site
   docker run --rm -p 4000:4000 -p 40000:40000 --env JEKYLL_ENV=production -v $(pwd):/app/src jekyll-container build
+
+
 }
 
 goal_docker() {
   docker build -t jekyll-container docker
+
+  docker run --rm --entrypoint cat jekyll-container /app/bundle/Gemfile.lock > docker/Gemfile.lock
 }
 
 goal_help() {

@@ -5,6 +5,7 @@ ENV BUNDLE_GEMFILE=/app/bundle/Gemfile
 WORKDIR /app/bundle
 
 ADD Gemfile .
+ADD Gemfile.lock .
 
 RUN bundle install
 
