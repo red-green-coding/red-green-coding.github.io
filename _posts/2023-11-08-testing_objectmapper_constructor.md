@@ -245,8 +245,7 @@ and required dependencies.
 These design changes allow us to have tests with less knowledge about the internals of the production code.
 Tests written that way are less coupled to the application code and allow us to add features and make refactorings more easily while breaking fewer unrelated tests.
 
-Check out Uncle Bob's Blog and read his article [Test Contra-variance][test-contravariance] that
-partly served as an inspiration for this article.
+Check out Uncle Bob's Blog and read his article [Test Contra-variance][test-contravariance]. It explains the topics of this post in a more fundamental way.
 
 Find the source code of our examples on [GitHub][github-examples].
 
