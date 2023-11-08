@@ -15,11 +15,11 @@ our test code from the production code_.
 
 # The problem
 
-Maintaining the codebase can become more complicated when test and production code is too tightly coupled.
-When test and production code is too tightly coupled,
+Maintaining the codebase can become more complicated when test and production code are too tightly coupled.
+When test and production code is tightly coupled,
 adding functionality, even in small ways, causes tests to break, often in unrelated locations.
 
-Another area are refactorings[^3]. We want to improve our code base by doing
+Another area is refactorings[^3]. We want to improve our code base by doing
 structural changes that don't change observable behavior. With too tightly coupled test and production code, these
 refactorings tend to break many tests, though the code still behaves correctly.
 
@@ -36,8 +36,8 @@ We use the same example from [part #1][part-1] of this article.
 
 {% highlight java %}
 public class MyService1 {
-    private ObjectMapper mapper;
-    private CollaboratorService collaborator;
+private ObjectMapper mapper;
+private CollaboratorService collaborator;
 
     MyService1(CollaboratorService collaborator, ObjectMapper mapper) {
         this.collaborator = collaborator;
@@ -89,8 +89,8 @@ For example, we want to switch the JSON mapper from Jackon to the alternative im
 
 {% highlight java %}
 public class MyService3 {
-    private Gson mapper;
-    private CollaboratorService collaborator;
+private Gson mapper;
+private CollaboratorService collaborator;
 
     MyService3(Gson mapper, CollaboratorService collaborator) {
         this.mapper = mapper;
@@ -133,24 +133,24 @@ Let's look at how we can improve the situation by decoupling the test from the p
 
 # Hiding implementation details
 
-The underlying problem here is that in the initial design, there is no differentiation between implementation details
+The underlying problem here is that in the current design, there is no differentiation between implementation details
 and actual collaborators. All dependencies are just passed into the constructor.
 
 We often find this pattern to put all dependencies of a class in its constructor in projects that use dependency injection frameworks.
 Dependency injection frameworks make it easy to structure your code like that, as the framework will do all the construction work for you.
 
 This ease is continued by the use of mocking frameworks like [Mockito][mockito], as it again makes it very easy to
-instantiate a class and just mock all of its dependencies.
+instantiate a class and mock all of its dependencies.
 
 These seemingly effortless choices can hurt the long-term maintainability of our codebase as they also tend to allow
 unintentional coupling between test and production code to creep into the codebase.
 
 In addition, people often tend to follow the advice to have one test per unit (e.g., class, function), which can lead
-to tight coupling, as then the structure of the tests mirrors the structure of the code too closely.
+to tight coupling, as the structure of the tests mirrors the structure of the code too closely.
 
 To improve the design, we will hide the implementation details by removing the mapper parameter from the constructor.
 Instead, we create the mapper inside our class. Alternatively, we could
-reference a shared, static instance if we need to be sure to use a similiarily configured mapper in multiple places.
+re-use a shared instance if we need to use a similarly configured mapper in multiple places.
 
 {% highlight java %}
 public class MyService4 {
@@ -223,15 +223,15 @@ These choices will have an effect on the quality of
 the tests and, consequently, on the maintainability of our codebase.
 
 Of course, this is just a tiny example. In real-world projects with tests that are too tightly coupled with production code,
-small changes often cause many tests to fail for many more reasons than we looked at here today. In these projects, the effort required
+small changes often cause many tests to fail for many more reasons than we look at here today. In these projects, the effort required
 to fix these test issues can seriously slow down ongoing development. It can also reduce the further adoption of test-driven
 development, as people conclude, unit tests hinder development.
 
 In addition to what we discussed here,
 there are many more things
-we need to consider to avoid coupling the test code to the production code too much.
+we need to consider avoiding coupling the test code to the production code too much.
 
-Applying Test-driven development gives you feedback about these things: Listen to that feedback, _Listen to the tests_! If something is challenging to test, it is often also difficult to use. Reconsider and modify your design
+Applying Test-driven development gives you feedback: Listen to that feedback, _Listen to the tests_! If something is challenging to test, it is often also difficult to use. Reconsider and modify your design
 to make it easier to test things. The main benefit of Test-driven development is that you get this feedback early on in the lifetime of some code.
 If you listen to this feedback and design your code accordingly, you will end up with modular code that is testable and can be modified easily.
 
