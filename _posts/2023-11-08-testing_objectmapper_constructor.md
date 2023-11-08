@@ -37,8 +37,8 @@ We use the same example from [part #1][part-1] of this article.
 
 {% highlight java %}
 public class MyService1 {
-private ObjectMapper mapper;
-private CollaboratorService collaborator;
+    private ObjectMapper mapper;
+    private CollaboratorService collaborator;
 
     MyService1(CollaboratorService collaborator, ObjectMapper mapper) {
         this.collaborator = collaborator;
@@ -90,8 +90,8 @@ For example, we want to switch the JSON mapper from Jackon to the alternative im
 
 {% highlight java %}
 public class MyService3 {
-private Gson mapper;
-private CollaboratorService collaborator;
+    private Gson mapper;
+    private CollaboratorService collaborator;
 
     MyService3(Gson mapper, CollaboratorService collaborator) {
         this.mapper = mapper;
@@ -155,8 +155,8 @@ re-use a shared instance if we need to use a similarly configured mapper in mult
 
 {% highlight java %}
 public class MyService4 {
-private Gson mapper = new Gson();
-private CollaboratorService collaborator;
+    private Gson mapper = new Gson();
+    private CollaboratorService collaborator;
 
     MyService4(CollaboratorService collaborator) {
         this.collaborator = collaborator;
@@ -239,9 +239,7 @@ If you listen to this feedback and design your code accordingly, you will end up
 # Conclusion
 
 In this article, we showed how we can improve the quality of unit tests by
-decoupling tests from production code.
-
-We achieved this by modifying the design of our production code to better distinguish between implementation details
+decoupling tests from production code. We achieved this by modifying the design of our production code to better distinguish between implementation details
 and required dependencies.
 
 These design changes allow us to have tests with less knowledge about the internals of the production code.
@@ -257,7 +255,6 @@ Find the source code of our examples on [GitHub][github-examples].
 [^1]: We would still consider this to be an _aggregation_ even if you are referencing a shared mapper. The fact that the mapper is shared is just an implementation detail.
 [^2]: Remember to avoid mocking third-party code (see [Part #1][part-1]).
 [^3]: _Refactoring is a disciplined technique for restructuring an existing body of code, altering its internal structure without changing its external behavior._ (see [Refactoring.com][refactoring])
-
 
 [part-1]: {% post_url 2023-10-16-testing_objectmapper_mock %}
 [mockito]: https://site.mockito.org/
