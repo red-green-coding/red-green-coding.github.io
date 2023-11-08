@@ -65,9 +65,10 @@ We use the following payload, with corresponding classes in Java:
 ```
 
 The following screenshot shows the results of the benchmark.
-We can perform 68 serialization operations per microsecond when we create a new ObjectMapper instance every time.
-In contrast we can perform 3137 serialization operations per microsecond if a prepared ObjectMapper is being used.
-This is a difference by a factor of 40.
+We can perform 72 serialization operations per microsecond when we create a new ObjectMapper instance every time.
+In contrast, we can perform 2,574 serialization operations per microsecond if a shared ObjectMapper is being used.
+This is a difference by a factor of 35.
+If we look at deserialization, the difference is even bigger with a factor of more than 60.
 ![img.png](/assets/reuse-object-mapper/benchmark.png)
 
 In the previous chapter we also claimed that creating the ObjectMapper itself is expensive, and we created a benchmark to get some insight:
@@ -75,6 +76,7 @@ In the previous chapter we also claimed that creating the ObjectMapper itself is
 
 We can see that creating the ObjectMapper is not particular expensive when compared with the numbers from the previous benchmark.
 For this reason, costs of instantiation are not a strong argument for reusing the mapper.
+Keep in mind that it will still increase the work for garbage collector.
 
 
 Full benchmark results: [https://jmh.morethan.io/?gist=1d98e83fa1fcab88beaf40caa0ea35be](https://jmh.morethan.io/?gist=1d98e83fa1fcab88beaf40caa0ea35be)
