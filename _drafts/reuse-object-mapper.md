@@ -1,12 +1,12 @@
 ---
 layout: post
-title:  "Reuse the ObjectMapper!"
+title:  "Please reuse Jackson's ObjectMapper"
 categories: java jackson
 ---
 # Why you should reuse Jackson's ObjectMapper
 
 As freelancers, we encounter a wide array of projects, each with its own unique characteristics and challenges.
-Among the common issues we come across is the less-than-ideal utilization of Jackson's ObjectMapper, often resembling scenarios like this:
+Among the common issues we come across is the less-than-ideal utilization of [Jackson](https://github.com/FasterXML/jackson)'s ObjectMapper, often resembling scenarios like this:
 
 ```java
 public String toJson(SomeDto someObject){
