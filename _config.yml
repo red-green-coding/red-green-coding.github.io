@@ -44,3 +44,4 @@ exclude:
    - vendor/ruby/
    - go.sh
    - readme.md
+   - .idea/

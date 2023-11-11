@@ -2,6 +2,7 @@
 layout: post
 title:  "Avoid mocking the ObjectMapper!"
 categories: [bettertests]
+tags: tdd mocking
 ---
 
 # Overview
