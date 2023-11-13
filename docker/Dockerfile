@@ -9,6 +9,10 @@ ADD Gemfile.lock .
 
 RUN bundle install
 
+RUN apt-get clean
+RUN apt-get update
+RUN apt-get -y install plantuml
+
 RUN mkdir /app/src
 
 WORKDIR /app/src
