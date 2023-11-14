@@ -7,9 +7,10 @@ tags: aws kotlin lombok dynamodb
 
 # Overview
 
-The DynamoDB Enhanced Client API is a library that allows us to integrate DynamoDB into our application code.
-Using the client, we can directly map between DynamoDB tables and our model classes.
-In this example, we want to explore how to set up model classes for seamless mapping in a Java or Kotlin application.
+The DynamoDB Enhanced Client API is a library that allows to integrate DynamoDB into application code.
+The client supports an annotation-driven programming model to map objects into DynamoDB tables.
+In this example we want to explore how we can map plain Java classes, Lombok classes and Kotlin data classes.
+We will also use property-based testing to test our mapping with a large number of inputs to ensure we don't miss any edgecases in our mapping.
 
 # What is DynamoDB?
 
@@ -131,35 +132,12 @@ With this infrastructure in place, we can finally run the test.
 We have added equivalent tests for the Lombok data bean, the Lombok value bean, and the Kotlin data class. They mainly differ in the
 generators they use to create the test data. The Kotlin data class tests use the alternative schema implementation provided by the [library][dataClass-lib].
 
-# A more complex example
-
-TODO
-
-* show model class with more types and nested types
-* show that property-based test finds mapping issues where not all values of a given type can be mapped to a table
-
-{% highlight java %}
-{% github_sample /abendt/aws-dynamodb/blob/main/src/main/java/complex/LombokComplexRecord.java tag:example %}
-{% endhighlight %}
-
-{% highlight java %}
-{% github_sample /abendt/aws-dynamodb/blob/main/src/main/java/complex/NestedLombok.java tag:example %}
-{% endhighlight %}
-
-{% highlight kotlin %}
-{% github_sample /abendt/aws-dynamodb/blob/main/src/test/kotlin/complex/Testdata.kt tag:example %}
-{% endhighlight %}
-
-* provide custom mapping (custom converter)
-* constrain types we use to avoid
-
 # Conclusion
 
 In this example, we showed how to use the DynamoDB-enhanced client to map seamlessly between the Database items
 and our model classes. We examined different options for how to set up the model classes with plain Java, Lombok, and Kotlin data classes.
 
-Furthermore, we used property-based testing for comprehensive coverage of our mapping configuration. By that, we could
-identify some edge cases that would let the mapping fail.
+Furthermore, we used property-based testing for comprehensive coverage of our mapping configuration. 
 
 Find the source code of our examples on [GitHub][github-examples].
 
