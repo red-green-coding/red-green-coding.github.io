@@ -2,6 +2,7 @@
 layout: post
 title:  "Avoid mocking the ObjectMapper!"
 categories: [bettertests]
+tags: tdd mocking
 ---
 
 # Overview
@@ -163,13 +164,16 @@ Find the source code of our examples on [GitHub][github-examples].
 
 Check out the [Mockito documentation][mockito] for more info on how to use Mockito.
 
+Check out [part #2][part-2] of this article.
+
+# Notes
+
+[^1]: The ObjectMapper is threadsafe ([javadoc][javadoc]), so it's generally safe to re-use and share it throughout the code
+
 [mockito]: https://site.mockito.org/
 [mockito-tutorial]: https://www.baeldung.com/mockito-annotations
 [jackson]: https://github.com/FasterXML/jackson-docs
 [mockito-how]: https://github.com/mockito/mockito/wiki/How-to-write-good-tests#dont-mock-a-type-you-dont-own
 [github-examples]: https://github.com/red-green-coding/bettertests-objectmapper-mock
 [javadoc]: https://fasterxml.github.io/jackson-databind/javadoc/2.7/com/fasterxml/jackson/databind/ObjectMapper.html
-
-# Notes
-
-[^1]: The ObjectMapper is threadsafe ([javadoc][javadoc]), so it's generally safe to re-use and share it throughout the code
+[part-2]: {% post_url 2023-11-08-testing_objectmapper_constructor %}
