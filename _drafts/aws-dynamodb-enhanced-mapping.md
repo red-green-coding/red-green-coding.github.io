@@ -104,15 +104,14 @@ It offers its own set of annotations for annotating the model class and provides
 
 To test our mapping comprehensively, we are using property-based testing[^2]. The benefit of that approach is that
 we will exercise our mapping configuration with a bigger range of generated inputs than if we write single example-based tests.
-With this approach, we can cover more edge cases and learn if our model can be safely mapped to the database and back.
+With this approach, we can cover more edge cases and learn if our model can be safely mapped to the database and back. 
 
 In our tests, we will take a generated value and map it to the database. Then, we will read that item from the database and
 finally compare if the item from the database equals our initial value.[^3]
 
-Our examples are implemented using [Kotest][kotest-proptest]
-
+Our examples are implemented using [Kotest][kotest-proptest].
 The test consists of a data generator. It allows us to create our model classes and populate them with random values. The data generator is implemented
-using [Kotest generators][kotest-generator].
+using some [Kotest generators][kotest-generator].
 
 {% highlight kotlin %}
 {% github_sample /abendt/aws-dynamodb/blob/main/src/test/kotlin/basic/Testdata.kt tag:example %}
@@ -145,7 +144,8 @@ Checkout the [GitHub example][github-example-basic].
 In this example, we showed how to use the DynamoDB-enhanced client to map seamlessly between the Database items
 and our model classes. We examined different options for how to set up the model classes with plain Java, Lombok, and Kotlin data classes.
 
-Furthermore, we used property-based testing for comprehensive coverage of our mapping configuration. 
+Furthermore, we used property-based testing for comprehensive coverage of our mapping configuration. For completeness
+we have also added a [JUnit based test][github-example-junit].
 
 The DynamoDB Enhanced Client API is way more flexible than we showed here today. Head over to its [documentation][ddb-enhanced] for more details on how you can 
 further use it.
@@ -179,3 +179,4 @@ Find the source code of our examples on [GitHub][github-examples].
 
 [github-examples]: https://github.com/abendt/aws-dynamodb
 [github-example-basic]: https://github.com/abendt/aws-dynamodb/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt#L29
+[github-example-junit]: https://github.com/abendt/aws-dynamodb/blob/main/src/test/java/basic/SimpleMappingTest.java#L21
