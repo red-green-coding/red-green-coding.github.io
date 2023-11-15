@@ -10,7 +10,7 @@ tags: aws kotlin lombok dynamodb
 The [DynamoDB Enhanced Client API][ddb-enhanced] is a library that allows to integrate DynamoDB into our application code.
 The client supports an annotation-driven programming model to map objects into DynamoDB tables.
 In this article we want to explore how we can use it to map plain Java classes, Lombok classes and Kotlin data classes.
-We will also use property-based testing to thoroughly test our mapping with generated test inputs to ensure we don't miss any edgecases in the mapping.
+We will also use property-based testing using Kotest to thoroughly test our mapping with generated test inputs to ensure we don't miss any edgecases in the mapping.
 
 # What is DynamoDB?
 
@@ -19,7 +19,7 @@ complex types as _List, Map, or Set_.[^1]
 
 A table is the fundamental concept in DynamoDB. In contrast to relational databases, DynamoDB tables are schemaless. A DynamoDB table only needs its primary key to be defined when created.
 The primary key can be simple (partition key of type _string_, _number_, or _binary_) or compound (_partition key_ and _sort key_).
-All items inserted into the table need to define that primary key. Besides that, every item
+All items inserted into the table need to define that primary key. Besides that, every item in the table
 can have a different set of attribute keys and value types:
 
 | partitionKey | attribute1 | attribute2 | attribute3 |
@@ -138,7 +138,7 @@ complex mapping. Our testsetup will come in handy when testing the more complex 
 
 We have added equivalent tests for the Lombok data bean, the Lombok value bean, and the Kotlin data class. They mainly differ in the
 generators they use to create the test data. Also the Kotlin data class tests use the alternative schema implementation provided by the [dynamodb-kotlin-module][dataClass-lib]. 
-Checkout our [GitHub examples][github-examples].
+Checkout the [GitHub example][github-example-basic].
 
 # Conclusion
 
@@ -178,3 +178,4 @@ Find the source code of our examples on [GitHub][github-examples].
 [kotest-testcontainers]: https://kotest.io/docs/extensions/test_containers.html
 
 [github-examples]: https://github.com/abendt/aws-dynamodb
+[github-example-basic]: https://github.com/abendt/aws-dynamodb/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt#L29
