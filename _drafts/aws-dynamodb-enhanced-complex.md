@@ -20,15 +20,15 @@ TODO
 * show that property-based test finds mapping issues where not all values of a given type can be mapped to a table
 
 {% highlight java %}
-{% github_sample /abendt/aws-dynamodb/blob/main/src/main/java/complex/LombokComplexRecord.java tag:example %}
+{% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/complex/LombokComplexItem.java tag:example %}
 {% endhighlight %}
 
 {% highlight java %}
-{% github_sample /abendt/aws-dynamodb/blob/main/src/main/java/complex/NestedLombok.java tag:example %}
+{% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/complex/NestedLombok.java tag:example %}
 {% endhighlight %}
 
 {% highlight kotlin %}
-{% github_sample /abendt/aws-dynamodb/blob/main/src/test/kotlin/complex/Testdata.kt tag:example %}
+{% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/complex/Testdata.kt tag:example %}
 {% endhighlight %}
 
 * provide custom mapping (custom converter)
@@ -61,4 +61,4 @@ Find the source code of our examples on [GitHub][github-examples].
 [kotest-proptest]: https://kotest.io/docs/proptest/property-based-testing.html
 [kotest-testcontainers]: https://kotest.io/docs/extensions/test_containers.html
 
-[github-examples]: https://github.com/abendt/aws-dynamodb
+[github-examples]: https://github.com/red-green-coding/aws-dynamodb-enhanced
