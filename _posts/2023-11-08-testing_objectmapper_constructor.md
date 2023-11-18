@@ -213,7 +213,14 @@ We can also express this changed relationship in a UML diagram by using _associa
 * association: MyService _knows_ a CollaboratorService,
 * aggregation: MyService _owns_ a mapper.[^1]
 
-![diagram](/assets/plantuml/testing_objectmapper_constructor/diagram.png)
+{% plantuml %}
+class MyService
+class MyOtherService
+class ObjectMapper
+
+MyService -- MyOtherService
+MyService *-- ObjectMapper
+{% endplantuml %}
 
 # Listen to the tests
 
