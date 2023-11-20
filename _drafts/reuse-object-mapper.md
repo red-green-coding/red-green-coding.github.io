@@ -124,5 +124,5 @@ As the ObjectMapper is threadsafe, we recommend using a shared instance wherever
 
 - [Benchmark source code](https://github.com/red-green-coding/object-mapper-benchmark/)
 - [ObjectMapper JavaDoc](https://fasterxml.github.io/jackson-databind/javadoc/2.7/com/fasterxml/jackson/databind/ObjectMapper.html)
-- [JMH](https://github.com/openjdk/jmh)
-- [JMH Visualizer](https://jmh.morethan.io/)
+- [JMH](https://github.com/openjdk/jmh), [JMH Visualizer](https://jmh.morethan.io/)
+- [Avoid mocking the ObjectMapper!](/bettertests/2023/10/16/testing_objectmapper_mock.html) and [Part 2](/bettertests/2023/11/08/testing_objectmapper_constructor.html)
