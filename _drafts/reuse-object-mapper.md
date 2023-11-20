@@ -94,9 +94,11 @@ This means that as long as we do not change its configuration after we start to 
 In most cases, we recommend just using a static field like
 
 ```java
-public static final ObjectMapper mapper = 
+public static final ObjectMapper MAPPER = 
         new ObjectMapper().registerModule(new ParameterNamesModule());
 ```
+
+Also, please refer to [our other post](/bettertests/2023/11/08/testing_objectmapper_constructor.html) on why we think that passing in the ObjectMapper instance via constructor is not necessarily a good idea.
 
 If you cannot, for some reason, be sure that the configuration will not change during runtime, the recommendation is to
 > Construct and use ObjectReader for reading, ObjectWriter for writing. Both types are fully immutable ...
