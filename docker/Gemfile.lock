@@ -35,6 +35,8 @@ GEM
       safe_yaml (~> 1.0)
     jekyll-feed (0.17.0)
       jekyll (>= 3.7, < 5.0)
+    jekyll-plantuml (1.4.1)
+      jekyll (> 2.0)
     jekyll-sass-converter (1.5.2)
       sass (~> 3.4)
     jekyll-seo-tag (2.8.0)
@@ -82,6 +84,7 @@ PLATFORMS
 DEPENDENCIES
   jekyll (~> 3.8.6)
   jekyll-feed (~> 0.6)
+  jekyll-plantuml
   jekyll_github_sample
   minima (~> 2.5.1)
   tzinfo (~> 1.2)
