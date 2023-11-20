@@ -22,23 +22,23 @@ We found it is mentioned only in some source code samples, e.g., in [JavaDoc of 
 
 > `final ObjectMapper mapper = new ObjectMapper(); // can use static singleton, inject: just make sure to reuse!`
 
-In this article we want to have a closer look at this topic.
+In this article, we want to look more closely at this topic.
 
 TLDR: If you care about serialization performance, reuse ObjectMapper instances.
 If you do not change their configuration while using them, they are threadsafe.
 
-# Why to reuse ObjectMapper instances
-When arguing for reusing the ObjectMapper, we usually stated two main reasons:
+# Why reuse ObjectMapper instances
+When arguing for reusing the ObjectMapper, we usually stated two reasons:
 
 Creating the ObjectMapper itself is an expensive operation.
 Every instance requires a non-trivial amount of internal state, as seen in this screenshot taken from a debugger.
 <img src="/assets/reuse-object-mapper/object-mapper-memory.png" alt="object mapper inernal state" width="400"/>
 
-The other argument is that the ObjectMapper needs to examine every class (hierarchy) it wants to instantiate, or that is a source for JSON.
+The other argument is that the ObjectMapper needs to examine every class (hierarchy) it wants to instantiate or that is a source for JSON.
 Therefore, it employs reflection to find contructors, properties, methods, and optional annotations.
 This information is required to build a mapping strategy for serializing or deserializing.
 These two steps are non-trivial, so the strategy gets cached inside the mapper.
-Subsequent requests to de/serialize use the prepared strategy and are way cheaper.
+Subsequent requests to de/serialize use the cached strategy and are cheaper.
 
 Both of these are performance concerns.
 If you use the ObjectMapper only sporadically, there's no need to be overly concerned.
@@ -46,10 +46,10 @@ However, there are a lot of cases where the ObjectMapper is used quite often (e.
 To validate our claims, we created a small benchmark.
 
 # Benchmarks
-The benchmarks haven been run on a 2021 MacBook Pro using Java Microbenchmark Harness ([JMH](https://github.com/openjdk/jmh)).
+The benchmarks have been run on a 2021 MacBook Pro using Java Microbenchmark Harness ([JMH](https://github.com/openjdk/jmh)).
 They are meant to provide a basic understanding of the performance disparities between reusing the ObjectMapper and generating a new instance for each call.
 The absolute numbers are less important, and we will concentrate on the relative differences.
-The benchmarks employ a relatively modest payload and do not take full advantage of the extensive Jackson features available for customizing the serialization process.
+The benchmarks employ a relatively simple payload and do not use Jackson's extensive feature set.
 We anticipate the performance gap to be even more pronounced in real-world situations.
 
 We use the following payload with corresponding classes in Java:
@@ -64,19 +64,19 @@ We use the following payload with corresponding classes in Java:
 }
 ```
 
-The following screenshot shows the results of the benchmark.
+The following screenshot shows the benchmark results.
 We can perform _72_ serialization operations per millisecond when we create a new ObjectMapper instance every time.
-In contrast, we can perform _2,574_ serialization operations per milliseconds using a shared ObjectMapper.
+In contrast, we can perform _2,574_ serialization operations per millisecond using a shared ObjectMapper.
 This is a difference by a factor of _35_.
 If we look at deserialization, the difference is even more significant with a factor of more than _60_.
 ![img.png](/assets/reuse-object-mapper/benchmark.png)
 
-In the previous section, we also stated that creating the ObjectMapper itself is expensive, and we created a benchmark to get some insight:
+In the previous section, we also stated that creating the ObjectMapper itself is expensive, so we created a benchmark to get some insight:
 ![img.png](/assets/reuse-object-mapper/benchmark_create_objectmapper.png)
 
 Creating the ObjectMapper is not particularly expensive compared to the previous benchmark numbers.
 For this reason, instantiation costs are not a strong argument for reusing the mapper.
-Keep in mind that it will still increase the work for the garbage collector and will increase the load on the JVM.
+Keep in mind that it will still increase the work for the garbage collector and the load on the JVM.
 
 
 Full benchmark results: [https://jmh.morethan.io/?gist=1d98e83fa1fcab88beaf40caa0ea35be](https://jmh.morethan.io/?gist=1d98e83fa1fcab88beaf40caa0ea35be)
@@ -114,7 +114,7 @@ For instance, consider a peculiar legacy system that unconventionally formats ti
 In such situations, opting for ObjectMappers with distinct configurations becomes entirely justifiable.
 
 # Conclusion
-In this article we demonstrated that there are significant performance benefits when the ObjectMapper instance is reused.
+In this article, we demonstrated that there are significant performance benefits when the ObjectMapper instance is reused.
 The benchmarks show a considerable difference in runtime cost between creating and reusing instances.
 As the ObjectMapper is threadsafe, we recommend using a shared instance wherever you communicate with the same JSON dialect.
 
