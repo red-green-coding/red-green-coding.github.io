@@ -49,7 +49,7 @@ To validate our claims, we created a small benchmark.
 The benchmarks have been run on a 2021 MacBook Pro using Java Microbenchmark Harness ([JMH](https://github.com/openjdk/jmh)).
 They are meant to provide a basic understanding of the performance disparities between reusing the ObjectMapper and generating a new instance for each call.
 The absolute numbers are less important, and we will concentrate on the relative differences.
-The benchmarks employ a relatively simple payload and do not use Jackson's extensive feature set.
+The benchmarks use a relatively simple payload and utilize only a subset of Jackson's extensive feature set.
 We anticipate the performance gap to be even more pronounced in real-world situations.
 
 We use the following payload with corresponding classes in Java:
@@ -98,7 +98,7 @@ public static final ObjectMapper MAPPER =
         new ObjectMapper().registerModule(new ParameterNamesModule());
 ```
 
-Also, please refer to [our other post](/bettertests/2023/11/08/testing_objectmapper_constructor.html) on why we think that passing in the ObjectMapper instance via constructor is not necessarily a good idea.
+Also, please refer to [our other post]({% post_url 2023-11-08-testing_objectmapper_constructor %}) on why we think that passing in the ObjectMapper instance via constructor is not necessarily a good idea.
 
 If you cannot, for some reason, be sure that the configuration will not change during runtime, the recommendation is to
 > Construct and use ObjectReader for reading, ObjectWriter for writing. Both types are fully immutable ...
