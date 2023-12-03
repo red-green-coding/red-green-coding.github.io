@@ -25,7 +25,7 @@ url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  red-green-coding
 linkedin_company: red-green-coding
 
-permalink: /blog/:title
+permalink: /blog/:slug
 
 # Build settings
 markdown: kramdown
