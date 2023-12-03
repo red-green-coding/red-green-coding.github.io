@@ -38,7 +38,7 @@ The other argument is that the ObjectMapper needs to examine every class (hierar
 Therefore, it employs reflection to find contructors, properties, methods, and optional annotations.
 This information is required to build a mapping strategy for serializing or deserializing.
 These two steps are non-trivial, so the strategy gets cached inside the mapper.
-Subsequent requests to de/serialize use the cached strategy and are cheaper.
+Subsequent requests to de/serialize the same class use the cached strategy and are cheaper.
 
 Both of these are performance concerns.
 If you use the ObjectMapper only sporadically, there's no need to be overly concerned.
