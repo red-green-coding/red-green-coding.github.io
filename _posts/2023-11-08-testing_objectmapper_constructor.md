@@ -2,7 +2,8 @@
 layout: post
 title:  "Avoid mocking the ObjectMapper! (part 2)"
 categories: [bettertests]
-tags: tdd mocking refactoring 
+tags: tdd mocking refactoring
+permalink: /bettertests/2023/11/08/testing_objectmapper_constructor.html
 ---
 
 # Overview
