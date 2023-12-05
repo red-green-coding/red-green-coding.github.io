@@ -45,12 +45,12 @@ With the low-level client, an item in a DynamoDB table is represented as a map o
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt tag:low-level-api %}
 {% endhighlight %}
 
-_AttributeValue_ is similar to a union type; this means it contains a value that can be of various types. Depending on the actual type of the value, we'll need to use the correct
-accessor method (e.g., _s()_ for String) to access the contained values. 
+_AttributeValue_ is similar to a union type; this means it contains a value that can be of various types. Depending on the actual type of the value, 
+we'll need to use the correct accessor method (e.g., _s()_ for String) to access the contained values. 
 
 In most applications, we don't want to use this low-level representation of the database contents throughout
-the application as it is unwieldy and error-prone to use. Instead, we typically create model classes to represent database items. We now will look at the dynamodb-enhanced client
-that offers a straightforward way to achieve that.
+the application as it is unwieldy and error-prone to use. Instead, we typically create model classes to represent database items. 
+We now will look at the dynamodb-enhanced client that offers a straightforward way to achieve that.
 
 # Using DynamodDB-enhanced
 
