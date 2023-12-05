@@ -18,5 +18,6 @@ deployment.
 Together, we have 30 years of experience.
 We have worked across several domains and have used a variety of technologies and tools.
 We are currently supporting companies as freelancers.
+If you are interested in working with us, please get in touch.
 
 Please contact us with any thoughts, opinions or questions.
