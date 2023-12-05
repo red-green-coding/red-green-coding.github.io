@@ -8,17 +8,18 @@ tags: aws java kotlin lombok dynamodb
 # Overview
 
 The [DynamoDB Enhanced Client API][ddb-enhanced] library allows us to integrate DynamoDB into our application code.
-The client supports an annotation-driven programming model to map objects into DynamoDB tables and vice versa.
+The client supports an annotation-driven programming model to map objects into DynamoDB tables.
 In this article, we want to explore how to use the client to map JavaBeans, Lombok Beans, and Kotlin data classes.
 We will also use property-based testing (using Kotest) to thoroughly test our mapping with generated test inputs to ensure we get all edge cases in the mapping.
+Let's start with a quick overview of the DynamoDB concepts that are relevant for this article.
 
 # What is DynamoDB?
 
-Let's first go over the most important DynamoDB concepts:
 Amazon DynamoDB is a _key-value NoSQL database_. Keys are of type _String_, and values can be simple types such as _String, Number, Boolean_ or
 complex types such as _List, Map, or Set_.[^1]
 
-A table is the fundamental concept in DynamoDB. In contrast to relational databases, DynamoDB tables are schemaless. A DynamoDB table only needs its primary key to be defined when created.
+A table is the fundamental concept in DynamoDB. In contrast to relational databases, DynamoDB tables are schemaless. 
+A DynamoDB table only needs its primary key to be defined when created.
 The primary key can be simple (partition key of type _String_, _Number_, or _Binary_) or compound (_partition key_ and _sort key_).
 All items inserted into the table need to define that primary key. Besides that, every item in the table
 can have a different set of attribute keys and value types:
