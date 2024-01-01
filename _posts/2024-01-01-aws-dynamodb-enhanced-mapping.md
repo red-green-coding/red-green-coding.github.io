@@ -7,10 +7,11 @@ tags: aws java kotlin lombok dynamodb
 
 # Overview
 
-The [DynamoDB Enhanced Client API][ddb-enhanced] library allows us to integrate DynamoDB into our application code.
+The [DynamoDB Enhanced Client API][ddb-enhanced] library allows us to integrate DynamoDB into Java and Kotlin application code.
 The client supports an annotation-driven programming model to map objects into DynamoDB tables.
 In this article, we want to explore how to use the client to map JavaBeans, Lombok Beans, and Kotlin data classes.
-We will also use property-based testing (using Kotest) to thoroughly test our mapping with generated test inputs to ensure we get all edge cases in the mapping.
+We will also use property-based testing (using [Kotest][kotest]) to thoroughly test our mapping with generated test inputs 
+to ensure we get all edge cases in the mapping.
 Let's start with a quick overview of the DynamoDB concepts that are relevant for this article.
 
 # What is DynamoDB?
@@ -38,12 +39,15 @@ This is, of course, only a brief overview of what DynamoDB is. Visit the [AWS do
 
 # Using the low-level API
 
-The first option to integrate DynamoDB is to use the low-level client API.
+Our first option to for accessing DynamoDB is to use the low-level client API.
 With the low-level client, an item in a DynamoDB table is represented as a map of type {% ihighlight java %}Map<String, AttributeValue>{% endihighlight %}.
+
 
 {% highlight kotlin %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt tag:low-level-api %}
 {% endhighlight %}
+
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt %}
 
 _AttributeValue_ is similar to a union type; this means it contains a value that can be of various types. Depending on the actual type of the value, 
 we'll need to use the correct accessor method (e.g., _s()_ for String) to access the contained values. 
@@ -68,6 +72,8 @@ We'll first look at a basic JavaBean. A JavaBean is a class that needs to follow
     // More getters and setters omitted for brevity
 }
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/basic/JavaItem.java %}
+
 
 # Java records
 
@@ -82,6 +88,7 @@ put the DynamoDB annotations on the generated getter code (see [documentation][l
 {% highlight java %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/basic/LombokMutableItem.java tag:example %}
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/basic/LombokMutableItem.java %}
 
 # Lombok @Value
 
@@ -91,6 +98,7 @@ use the generated Lombok builder so it knows how to instantiate our model class.
 {% highlight java %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/basic/LombokImmutableItem.java tag:example %}
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/java/basic/LombokImmutableItem.java %}
 
 # Kotlin data classes
 
@@ -103,6 +111,7 @@ It offers its own set of annotations for annotating the model class and provides
 {% highlight kotlin %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/kotlin/sample/KotlinItem.kt tag:example %}
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/main/kotlin/sample/KotlinItem.kt %}
 
 # Testing our mapping
 
@@ -120,12 +129,14 @@ using some [Kotest generators][kotest-generator]:
 {% highlight kotlin %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/Testdata.kt tag:example %}
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/Testdata.kt %}
 
 Next is the test itself. It consists of the infrastructure needed to spin up a Localstack Docker container.
 
 {% highlight kotlin %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt tag:localstack %}
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt %}
 
 Using the [Kotest testcontainers integration][kotest-testcontainers], we ensure that the test runner starts a Localstack container before
 executing our test code. We then configure a DynamoDB client to connect to DynamoDB inside the Docker container.
@@ -135,6 +146,7 @@ With this infrastructure in place, we can finally define the test.
 {% highlight kotlin %}
 {% github_sample /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt tag:proptest-java %}
 {% endhighlight %}
+{% github_sample_ref /red-green-coding/aws-dynamodb-enhanced/blob/main/src/test/kotlin/basic/SimpleMappingSpec.kt %}
 
 The tests all passed, meaning we don't have any issues with our mapping. Part 2 of this article will look at a more
 complex mapping. Our test setup will be helpful when testing the more complex mapping.
@@ -176,6 +188,7 @@ Find the source code of our examples on [GitHub][github-examples].
 [proptest-intro]: https://fsharpforfunandprofit.com/series/property-based-testing/
 [proptest-there-and-back]: https://fsharpforfunandprofit.com/posts/property-based-testing-3/#inverseRev
 
+[kotest]: https://kotest.io/
 [kotest-generator]: https://kotest.io/docs/proptest/property-test-generators-list.html
 [kotest-proptest]: https://kotest.io/docs/proptest/property-based-testing.html
 [kotest-testcontainers]: https://kotest.io/docs/extensions/test_containers.html
