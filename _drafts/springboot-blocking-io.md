@@ -145,7 +145,7 @@ suspend fun deferredIO1(): Deferred<String> =
     }
 {% endhighlight %}
 
-### Webflux/Netty
+### WebFlux/Netty
 
 #### No-op endpoints
 
@@ -214,7 +214,7 @@ The custom dispatcher can also be used with the _suspend + Dispatchers.IO_ examp
 
 This drastically improves the performance so it's comparable to the `CompletableFuture` example.
 
-## Webflux
+## WebFlux
 
 |                | Requests per second | Average latency p99 (ms) |
 |---------------:|---------------------|--------------------------|
