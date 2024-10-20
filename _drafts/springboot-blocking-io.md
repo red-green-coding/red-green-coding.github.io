@@ -176,8 +176,8 @@ fun monoIO1(): Mono<String> =
 
 |                           | Requests per second | Average latency p99 (ms) |
 |--------------------------:|---------------------|--------------------------|
-|                      noop | 9200                | 100                      |
-|            suspend + noop | 4800                | 190                      |
+|                     no-op | 9200                | 100                      |
+|           suspend + no-op | 4800                | 190                      |
 |                  blocking | 392                 | 1030                     |
 |  suspend + Dispatchers.IO | 125                 | 3500                     |
 |         CompletableFuture | 760                 | 599                      |
@@ -216,12 +216,12 @@ This drastically improves the performance so it's comparable to the `Completable
 
 ## WebFlux
 
-|                | Requests per second | Average latency p99 (ms) |
-|---------------:|---------------------|--------------------------|
-|           noop | 15806.90            | 84.08                    |
-| suspend + noop | 14316.92            | 85.86                    |
-|   blocking I/O | 7.7                 | 29000                    |
-|     mono + I/O | 19.60               | 20000                    |
+|                 | Requests per second | Average latency p99 (ms) |
+|----------------:|---------------------|--------------------------|
+|           no-op | 15806.90            | 84.08                    |
+| suspend + no-op | 14316.92            | 85.86                    |
+|    blocking I/O | 7.7                 | 29000                    |
+|      mono + I/O | 19.60               | 20000                    |
 
 When examining the results from the no-op endpoints, it is evident that the WebFlux stack can deliver higher performance compared to the Tomcat stack. This improved performance is largely due to WebFlux's non-blocking nature, which allows it to handle a larger number of concurrent requests while consuming less system resources.
 
