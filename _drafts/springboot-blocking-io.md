@@ -7,7 +7,11 @@ tags: spring-boot kotlin webflux tomcat
 
 ![img.png](/assets/springboot-blocking-io/img.png)
 
-This article focuses on optimizing Spring Boot backend performance when working with blocking I/O operations, such as fetching data from external services. We compare two popular setups: Tomcat (with traditional blocking architecture) and WebFlux/Netty (non-blocking) using Kotlin. You’ll gain insights into how to handle blocking operations in each setup and the key configurations to improve performance.
+This article focuses on optimizing Spring Boot backend performance when working with blocking I/O operations, such as fetching data from external services. We compare two popular setups: _Tomcat_ (the traditional stack) and _WebFlux/Netty_ (the reactive, non-blocking stack) using Kotlin. You’ll gain insights into how to handle blocking operations in each setup and some key configurations to improve performance.
+
+# Context
+
+In an existing Tomcat-based project, we encountered performance issues, particularly when the system struggled to handle high volumes of incoming requests. Alongside other potential optimizations, we examined how the Tomcat stack impacted overall performance and explored whether switching to WebFlux might address some of these limitations.
 
 # What Metrics Matter?
 
@@ -112,9 +116,9 @@ suspend fun supendIO(): String {
 
 #### CompletableFuture
 
-We can wrap the blocking operation in a _CompletableFuture_ and schedule it on a thread pool appropriate for handling such tasks. This approach allows us to offload the execution of the blocking task to a separate thread, avoiding the blocking of the main request thread.
+We can wrap the blocking operation in a `CompletableFuture` and schedule it on a thread pool appropriate for handling such tasks. This approach allows us to offload the execution of the blocking task to a separate thread, avoiding the blocking of the main request thread.
 
-In this scenario, we return the CompletableFuture from our controller, and Spring will take care of handling it. Once the future is resolved, Spring completes the HTTP response:
+In this scenario, we return the `CompletableFuture` from our controller, and Spring will take care of handling it. Once the future is resolved, Spring completes the HTTP response:
 
 {% highlight kotlin %}
 val ioExecutor = Executors.newCachedThreadPool()
@@ -130,9 +134,9 @@ fun completableIO(): CompletableFuture<String> {
 
 #### Deferred
 
-In Kotlin, _Deferred_ is a non-blocking equivalent to Java’s CompletableFuture. We can use it to wrap a blocking operation inside a coroutine that runs on the Dispatchers.IO context, specifically optimized for blocking I/O operations. 
+In Kotlin, `Deferred` is a non-blocking equivalent to Java’s `CompletableFuture`. We can use it to wrap a blocking operation inside a coroutine that runs on the `Dispatchers.IO context, specifically optimized for blocking I/O operations. 
 
-In this approach, we return the Deferred result from the controller, and Spring will automatically handle the Deferred, completing the HTTP response once the coroutine finishes:
+In this approach, we return the `Deferred` result from the controller, and Spring will automatically handle the `Deferred`, completing the HTTP response once the coroutine finishes:
 
 {% highlight kotlin %}
 @GetMapping("/deferredIO1")
@@ -159,7 +163,7 @@ We'll reuse the Tomcat blocking example to illustrate the impact of blocking I/O
 
 #### Mono + Schedulers.boundedElastic()
 
-We can use the _Mono_ type in the Spring reactive stack to represent asynchronous computations. However, when performing blocking I/O operations, it’s crucial to use an appropriate scheduler to avoid blocking the event loop[^1]:
+We can use the `Mono` type in the Spring reactive stack to represent asynchronous computations. However, when performing blocking I/O operations, it’s crucial to use an appropriate scheduler to avoid blocking the event loop[^1]:
 
 {% highlight kotlin %}
 @GetMapping("/monoIO1")
@@ -185,11 +189,11 @@ fun monoIO1(): Mono<String> =
 
 When comparing the no-op endpoints, we observe that Kotlin’s coroutine machinery introduces some overhead compared to using regular functions.
 
-The results for blocking I/O are not surprising: Tomcat uses a pool of [200 threads by default][tomcat-threadpool-default]. Since each thread can be blocked for 500ms during a blocking operation, it can theoretically handle a maximum of 400 requests per second (RPS). Our measurements align with this theoretical maximum, confirming the expected performance under these conditions.
+The results for blocking I/O are not surprising: Tomcat uses a pool of [200 threads by default][tomcat-threadpool-default]. Since each thread can be blocked for _500ms_ during a blocking operation, it can theoretically handle a maximum of _400 requests per second (RPS)_. Our measurements align with this theoretical maximum, confirming the expected performance under these conditions.
 
 When we wrap the blocking I/O operation in a _CompletableFuture_ submitted to a _separate thread pool_, we allow the controller thread to be freed earlier to handle new connections. This adjustment significantly improves throughput, with measurements showing an increase of approximately _760 RPS_.
 
-The performance results using suspend functions and the Deferred type in combination with Dispatchers.IO might initially seem surprising. However, upon checking the [documentation][dispatchers-io], we note that the number of threads used by tasks in this dispatcher defaults to the greater of 64 threads or the number of CPU cores available. This limit can constrain performance if the number of concurrent tasks exceeds this threshold.
+The performance results using suspend functions and the `Deferred` type in combination with `Dispatchers.IO might initially seem surprising. However, upon checking the [documentation][dispatchers-io], we note that the number of threads used by tasks in this dispatcher defaults to the greater of 64 threads or the number of CPU cores available. This limit can constrain performance if the number of concurrent tasks exceeds this threshold.
 
 To optimize performance further, we can create a custom dispatcher that utilizes an unbounded and caching thread pool when using `withContext(...)`. This allows for more flexibility and can improve performance when handling blocking I/O in high-throughput scenarios:
 
@@ -238,9 +242,9 @@ val scheduler = Schedulers.fromExecutor(Executors.newCachedThreadPool())
 
 @GetMapping("/monoIO2")
 fun monoIO2(): Mono<String> =
-  Mono.fromCallable {
-    Thread.sleep(500)
-    "monoIO2"
+    Mono.fromCallable {
+        Thread.sleep(500)
+        "monoIO2"
     }.subscribeOn(scheduler)
 {% endhighlight %}
 
@@ -250,15 +254,19 @@ After implementing the custom scheduler, we can measure the new performance metr
 |------------------------:|---------------------|--------------------------|
 | Mono + custom scheduler | 772.27              | 529.25                   |
 
-This implementation improves performance, making it slightly better than the Tomcat example using CompletableFuture. However, in a more realistic scenario, we wouldn’t rely on _Thread.sleep_ to simulate I/O. Instead, we would utilize an actual client and fetch some data from an external system. In such cases, there is significant potential for further improvement by switching to a non-blocking client rather than continuing with a blocking one. Exploring this transition is beyond the scope of this article but is an essential consideration for enhancing performance in real-world applications.
+This implementation improves performance, making it slightly better than the Tomcat example using `CompletableFuture`. However, in a more realistic scenario, we wouldn’t rely on `Thread.sleep()` to simulate I/O. Instead, we would utilize an actual client and fetch some data from an external system. In such cases, there is significant potential for further improvement by switching to a non-blocking client rather than continuing with a blocking one. Exploring this transition is beyond the scope of this article but is an essential consideration for enhancing performance in real-world applications.
 
-# Conclusion
+# Key takeaways
 
-In our performance comparison, WebFlux generally demonstrates better out-of-the-box performance than Tomcat. We also learned that when utilizing WebFlux or Kotlin coroutines, following the framework's conventions is crucial to avoid introducing potential performance limitations.
+**Out-of-the-box performance:** WebFlux showed better out-of-the-box performance than Tomcat in our tests, when looking at the No-op endpoints. This shows us the potential of the reactive stack.
 
-In our synthetic use case, WebFlux's performance did not surpass that of Tomcat (comparing the _Tomcat CompletableFuture_ with the _WebFlux Mono_ example). This outcome underscores the importance of context in performance evaluations. 
+**Respect framework conventions:**  When using WebFlux or Kotlin coroutines, sticking to the framework’s conventions and understand where and how blocking code can be used is essential to avoid adding unnecessary performance issues.
 
-When performing performance optimizations, it is essential to follow a structured process: first, define the scenario that accurately reflects your use cases; next, conduct tests and retests to gather performance data; and finally, evaluate whether the observed changes are relevant to your application. By following these steps, you can make informed decisions about which performance-related optimizations are applicable to your specific needs.
+**WebFlux isn't a silver bullet:** WebFlux doesn’t automatically resolve performance issues. In scenarios that involved blocking calls, WebFlux didn’t outperform Tomcat (specifically, comparing Tomcat’s CompletableFuture with WebFlux’s Mono). To leverage WebFlux’s full potential, you may need to refactor blocking tasks to non-blocking alternatives.
+
+**Measure and optimize:** In our experiments, we found that default configurations, such as `Dispatchers.IO` and `Schedulers.boundedElastic()`, required tuning to meet our specific needs. This highlights the importance of running your own benchmarks and experiments rather than relying solely on default settings or information from blogs and articles like this one.
+
+**Follow a structured optimization process:** Performance optimization should be systematic. Begin with a scenario that reflects real-world use cases, then run tests to gather data, and finally, evaluate whether the results align with your goals. Iterate as necessary to ensure the optimizations add meaningful value. 
 
 # Notes
 
