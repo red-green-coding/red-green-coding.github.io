@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Boosting Spring Boot Performance: Tomcat vs. WebFlux/Netty for Blocking I/O"
+title:  "Understanding Spring Boot Performance: Tomcat vs. WebFlux/Netty for Blocking I/O"
 categories: [spring-boot]
 tags: spring-boot kotlin webflux tomcat
 ---
