@@ -15,12 +15,12 @@ In an existing Tomcat-based project, we encountered performance issues, particul
 
 # What Metrics Matter?
 
-In user-facing backend performance, two key metrics determine how responsive and scalable your system are:
+In user-facing backend performance, two key metrics determine how responsive and scalable your system is:
 
 * **Latency**: The delay between a request and its response, typically measured in milliseconds (ms). Lower latency means faster response times, which directly improves the user experience by reducing wait times. We'll look at _p99_ (99th percentile).
 * **Requests per Second (RPS)**: The number of requests your system can process in one second. A higher RPS reflects your system’s ability to manage more concurrent users efficiently without degrading performance.
 
-To measure both latency and RPS, we can use the HTTP benchmarking tool [wrk][wrk]. The following command simulates a workload with:
+We can use the HTTP benchmarking tool [wrk][wrk] to measure both latency and RPS. The following command simulates a workload:
 
 ```shell
 wrk -t12 -c400 -d30s http://localhost:8080/endpoint
@@ -92,7 +92,7 @@ For each stack, we followed the recommended patterns to handle blocking I/O effi
 
 #### Blocking the controller
 
-In Tomcat, we can directly block the controller thread to do perform I/O:
+In Tomcat, the typical approach is to block the controller thread directly to perform I/O.
 
 {% highlight kotlin %}
 @GetMapping("/blockingIO")
@@ -136,7 +136,7 @@ fun completableIO(): CompletableFuture<String> {
 
 #### Deferred
 
-In Kotlin, `Deferred` is a non-blocking equivalent to Java’s `CompletableFuture`. We can use it to wrap a blocking operation inside a coroutine that runs on the `Dispatchers.IO context, specifically optimized for blocking I/O operations. 
+In Kotlin, `Deferred` is a non-blocking equivalent to Java’s `CompletableFuture`. We can use it to wrap a blocking operation inside a coroutine that runs on the `Dispatchers.IO` context, specifically optimized for blocking I/O operations. 
 
 In this approach, we return the `Deferred` result from the controller, and Spring will automatically handle the `Deferred`, completing the HTTP response once the coroutine finishes:
 
@@ -193,7 +193,7 @@ When comparing the no-op endpoints, we observe that Kotlin’s coroutine machine
 
 The results for blocking I/O are not surprising: Tomcat uses a pool of [200 threads by default][tomcat-threadpool-default]. Since each thread can be blocked for _500ms_ during a blocking operation, it can theoretically handle a maximum of _400 requests per second (RPS)_. Our measurements align with this theoretical maximum, confirming the expected performance under these conditions.
 
-When we wrap the blocking I/O operation in a _CompletableFuture_ submitted to a _separate thread pool_, we allow the controller thread to be freed earlier to handle new connections. This adjustment significantly improves throughput, with measurements showing an increase of approximately _760 RPS_.
+When we wrap the blocking I/O operation in a _CompletableFuture_ submitted to a _separate thread pool_, we allow the controller thread to handle new connections sooner. This adjustment significantly improves throughput, with measurements showing an increase of approximately _760 RPS_.
 
 The performance results using suspend functions and the `Deferred` type in combination with `Dispatchers.IO might initially seem surprising. However, upon checking the [documentation][dispatchers-io], we note that the number of threads used by tasks in this dispatcher defaults to the greater of 64 threads or the number of CPU cores available. This limit can constrain performance if the number of concurrent tasks exceeds this threshold.
 
@@ -231,9 +231,9 @@ This drastically improves the performance so it's comparable to the `Completable
 
 When examining the results from the no-op endpoints, it is evident that the WebFlux stack can deliver higher performance compared to the Tomcat stack. This improved performance is largely due to WebFlux's non-blocking nature, which allows it to handle a larger number of concurrent requests while consuming less system resources.
 
-The results for blocking I/O operations in WebFlux are particularly concerning. When we perform blocking calls, we violate the conventions of the reactive stack, leading to poor performance outcomes. These issues may not be easily identifiable through code review alone in a more complex system. Additionally these issues do not typically affect functionality, they can go undetected in standard (non-load) testing[^2].
+The results for blocking I/O operations in WebFlux are particularly concerning. Performing blocking calls can easily violate the conventions of the reactive stack, leading to poor performance outcomes. These issues may not be easily identifiable through code review alone in a more complex system. Additionally these issues do not typically affect functionality, they can go undetected in standard (non-load) testing[^2].
 
-The performance results for Mono may initially appear surprising. Drawing from our previous experience with the Coroutine dispatcher configuration, we checked the [documentation for the elastic scheduler][reactor-boundedelastic]. We found the following: _The maximum number of concurrent threads is bounded by a cap (by default ten times the number of available CPU cores_. In our case, with 1 CPU core, this results in a cap of 10 threads. This helps to better understand the numbers we are seeing:
+The performance results for Mono may initially appear surprising. Drawing from our previous experience with the coroutine dispatcher configuration, we checked the [documentation for the elastic scheduler][reactor-boundedelastic]. We found the following: _The maximum number of concurrent threads is bounded by a cap (by default ten times the number of available CPU cores_. In our case, with 1 CPU core, this results in a cap of 10 threads. This helps to better understand the numbers we are seeing:
 
 ![equation.png](/assets/springboot-blocking-io/equation.png)
 
@@ -264,11 +264,11 @@ This implementation improves performance, making it slightly better than the Tom
 
 **Respect framework conventions:**  When using WebFlux or Kotlin coroutines, sticking to the framework’s conventions and understand where and how blocking code can be used is essential to avoid adding unnecessary performance issues.
 
-**WebFlux isn't a silver bullet:** WebFlux doesn’t automatically resolve performance issues. In scenarios that involved blocking calls, WebFlux didn’t outperform Tomcat (specifically, comparing Tomcat’s CompletableFuture with WebFlux’s Mono). To leverage WebFlux’s full potential, you may need to refactor blocking tasks to non-blocking alternatives.
+**WebFlux isn't a silver bullet:** WebFlux doesn’t automatically resolve performance issues. In scenarios that involved blocking calls, WebFlux didn’t outperform Tomcat (specifically, comparing Tomcat’s CompletableFuture with WebFlux’s Mono). To fully leverage WebFlux’s potential, you may need to refactor blocking tasks to non-blocking alternatives.
 
 **Measure and optimize:** In our experiments, we found that default configurations, such as `Dispatchers.IO` and `Schedulers.boundedElastic()`, required tuning to meet our specific needs. This highlights the importance of running your own benchmarks and experiments rather than relying solely on default settings or information from blogs and articles like this one.
 
-**Follow a structured optimization process:** Performance optimization works best when approached systematically. Start by defining a scenario that mirrors real-world use cases, run tests to gather baseline data, make adjustments, retest, and evaluate whether the results meet your goals and if its worth applying them. Repeat as needed to ensure the optimizations provide real value.
+**Follow a structured optimization process:** Performance optimization works best when approached systematically. Start by defining a scenario that mirrors real-world use cases, run tests to gather baseline data, make adjustments, retest, and evaluate whether the results meet your goals and if its worth applying them. Repeat as necessary to ensure the optimizations provide real value.
 
 # Notes
 
