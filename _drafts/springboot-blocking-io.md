@@ -17,7 +17,7 @@ In an existing Tomcat-based project, we encountered performance issues, particul
 
 In user-facing backend performance, two key metrics determine how responsive and scalable your system are:
 
-* **Average Latency**: The delay between a request and its response, typically measured in milliseconds (ms). Lower latency means faster response times, which directly improves the user experience by reducing wait times.
+* **Latency**: The delay between a request and its response, typically measured in milliseconds (ms). Lower latency means faster response times, which directly improves the user experience by reducing wait times. We'll look at _p99_ (99th percentile).
 * **Requests per Second (RPS)**: The number of requests your system can process in one second. A higher RPS reflects your system’s ability to manage more concurrent users efficiently without degrading performance.
 
 To measure both latency and RPS, we can use the HTTP benchmarking tool [wrk][wrk]. The following command simulates a workload with:
