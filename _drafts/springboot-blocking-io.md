@@ -58,6 +58,8 @@ We will compare two basic Spring Boot applications:
 
 Both applications are built into Docker images and run as containers to ensure a consistent test environment across different machines. To evaluate performance, we defined several REST endpoints to demonstrate how each stack handles blocking I/O differently.
 
+We provided _1 virtual cpu_ and _1 GB of memory_ to the docker container. 
+
 ## No-op endpoints
 
 These endpoints measure the raw performance of each stack by returning a fixed result without performing any actual processing. Both stacks allow the use of:
