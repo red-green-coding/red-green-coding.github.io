@@ -268,7 +268,7 @@ This implementation improves performance, making it slightly better than the Tom
 
 **Measure and optimize:** In our experiments, we found that default configurations, such as `Dispatchers.IO` and `Schedulers.boundedElastic()`, required tuning to meet our specific needs. This highlights the importance of running your own benchmarks and experiments rather than relying solely on default settings or information from blogs and articles like this one.
 
-**Follow a structured optimization process:** Performance optimization should be systematic. Begin with a scenario that reflects real-world use cases, then run tests to gather data, and finally, evaluate whether the results align with your goals. Iterate as necessary to ensure the optimizations add meaningful value. 
+**Follow a structured optimization process:** Performance optimization works best when approached systematically. Start by defining a scenario that mirrors real-world use cases, run tests to gather baseline data, make adjustments, retest, and evaluate whether the results meet your goals and if its worth applying them. Repeat as needed to ensure the optimizations provide real value.
 
 # Notes
 
