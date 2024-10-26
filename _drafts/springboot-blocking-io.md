@@ -1,13 +1,13 @@
 ---
 layout: post
-title:  "Understanding Spring Boot Performance: Tomcat vs. WebFlux for Blocking I/O"
+title:  "Tomcat vs. WebFlux for Blocking I/O"
 categories: [spring-boot]
 tags: spring-boot kotlin webflux tomcat
 ---
 
 ![img.png](/assets/springboot-blocking-io/img.png)
 
-This article focuses on optimizing Spring Boot backend performance when working with blocking I/O operations, such as fetching data from external services. We compare two popular setups: _Tomcat_ (the traditional stack) and _WebFlux/Netty_ (the reactive, non-blocking stack) using Kotlin. You’ll gain insights into how to handle blocking operations in each setup and some key configurations to improve performance.
+This article focuses on optimizing Spring Boot backend performance for blocking I/O operations, such as fetching data from external services. We compare two popular setups: _Tomcat_ (the traditional stack) and _WebFlux/Netty_ (the reactive, non-blocking stack) using Kotlin. You’ll gain insights into how to handle blocking operations in each setup and some key configurations to improve performance.
 
 # Context
 
@@ -15,9 +15,9 @@ In an existing Tomcat-based project, we encountered performance issues, particul
 
 # What Metrics Matter?
 
-In user-facing backend performance, two key metrics determine how responsive and scalable your system is:
+In user-facing backend performance, two key metrics determine system responsiveness and scalability:
 
-* **Latency**: The delay between a request and its response, typically measured in milliseconds (ms). Lower latency means faster response times, which directly improves the user experience by reducing wait times. We'll look at _p99_ (99th percentile).
+* **Latency**: The time between a request and its response, typically measured in milliseconds (ms). Lower latency means faster response times, which directly improves the user experience by reducing wait times. We'll look at _p99_ (99th percentile).
 * **Requests per Second (RPS)**: The number of requests your system can process in one second. A higher RPS reflects your system’s ability to manage more concurrent users efficiently without degrading performance.
 
 We can use the HTTP benchmarking tool [wrk][wrk] to measure both latency and RPS. The following command simulates a workload:
@@ -26,7 +26,7 @@ We can use the HTTP benchmarking tool [wrk][wrk] to measure both latency and RPS
 wrk -t12 -c400 -d30s http://localhost:8080/endpoint
 ```
 
-This will run a performance test using:
+This command runs a performance test with:
 * _12_ threads (`-t12`)
 * _400_ concurrent connections (`-c400`)
 * a _30-second_ duration (`-d30s`)
@@ -56,7 +56,7 @@ We will compare two basic Spring Boot applications:
 * One using _spring-boot-starter-web_ (Tomcat) 
 * One using _spring-boot-starter-webflux_ (Netty by default)
 
-Both applications are built into Docker images and run as containers to ensure a consistent test environment across different machines. To evaluate performance, we defined several REST endpoints to demonstrate how each stack handles blocking I/O differently.
+Both applications are built into Docker images and run as containers to ensure a consistent test environment across different machines. To evaluate performance, we created several REST endpoints to demonstrate how blocking I/O can be performed safely in the different stacks.
 
 We provided _1 virtual cpu_ and _1 GB of memory_ to the docker container. 
 
@@ -141,12 +141,12 @@ In Kotlin, `Deferred` is a non-blocking equivalent to Java’s `CompletableFutur
 In this approach, we return the `Deferred` result from the controller, and Spring will automatically handle the `Deferred`, completing the HTTP response once the coroutine finishes:
 
 {% highlight kotlin %}
-@GetMapping("/deferredIO1")
+@GetMapping("/deferredIO")
 suspend fun deferredIO1(): Deferred<String> =
     coroutineScope {
         async(Dispatchers.IO) {
             Thread.sleep(500)
-            "deferredIO1"
+            "deferredIO"
         }
     }
 {% endhighlight %}
@@ -191,13 +191,13 @@ fun monoIO1(): Mono<String> =
 
 When comparing the no-op endpoints, we observe that Kotlin’s coroutine machinery introduces some overhead compared to using regular functions.
 
-The results for blocking I/O are not surprising: Tomcat uses a pool of [200 threads by default][tomcat-threadpool-default]. Since each thread can be blocked for _500ms_ during a blocking operation, it can theoretically handle a maximum of _400 requests per second (RPS)_. Our measurements align with this theoretical maximum, confirming the expected performance under these conditions.
+As expected, blocking I/O results align with Tomcat’s default thread pool settings: Tomcat uses a pool of [200 threads by default][tomcat-threadpool-default]. Since each thread can be blocked for _500ms_ during a blocking operation, it can handle a theoretical maximum of _400 requests per second (RPS)_. Our measurements align with this theoretical maximum, confirming the expected performance under these conditions.
 
 When we wrap the blocking I/O operation in a _CompletableFuture_ submitted to a _separate thread pool_, we allow the controller thread to handle new connections sooner. This adjustment significantly improves throughput, with measurements showing an increase of approximately _760 RPS_.
 
 The performance results using suspend functions and the `Deferred` type in combination with `Dispatchers.IO might initially seem surprising. However, upon checking the [documentation][dispatchers-io], we note that the number of threads used by tasks in this dispatcher defaults to the greater of 64 threads or the number of CPU cores available. This limit can constrain performance if the number of concurrent tasks exceeds this threshold.
 
-To optimize performance further, we can create a custom dispatcher that utilizes an unbounded and caching thread pool when using `withContext(...)`. This allows for more flexibility and can improve performance when handling blocking I/O in high-throughput scenarios:
+To optimize performance further, we can create a custom dispatcher that utilizes an unbounded and caching thread pool when using `withContext(...)`. This adjustment provides more flexibility and can improve performance when handling blocking I/O in high-throughput scenarios:
 
 {% highlight kotlin %}
 val ioDispatcher = Executors.newCachedThreadPool().asCoroutineDispatcher()
@@ -233,11 +233,11 @@ When examining the results from the no-op endpoints, it is evident that the WebF
 
 The results for blocking I/O operations in WebFlux are particularly concerning. Performing blocking calls can easily violate the conventions of the reactive stack, leading to poor performance outcomes. These issues may not be easily identifiable through code review alone in a more complex system. Additionally these issues do not typically affect functionality, they can go undetected in standard (non-load) testing[^2].
 
-The performance results for Mono may initially appear surprising. Drawing from our previous experience with the coroutine dispatcher configuration, we checked the [documentation for the elastic scheduler][reactor-boundedelastic]. We found the following: _The maximum number of concurrent threads is bounded by a cap (by default ten times the number of available CPU cores_. In our case, with 1 CPU core, this results in a cap of 10 threads. This helps to better understand the numbers we are seeing:
+The performance results for Mono may initially appear surprising. Drawing from our previous experience based on the coroutine dispatcher defaults, we checked the [documentation for the elastic scheduler][reactor-boundedelastic]. We found the following: _The maximum number of concurrent threads is bounded by a cap (by default ten times the number of available CPU cores_. In our case, with 1 CPU core, this results in a cap of 10 threads. This helps to better understand the numbers we are seeing:
 
 ![equation.png](/assets/springboot-blocking-io/equation.png)
 
-Thus, to improve performance, we need to provide a bigger threadpool. We achieve that by using a customized scheduler:
+To improve performance, we need to provide a bigger threadpool. We achieve that by using a customized scheduler:
 
 {% highlight kotlin %}
 val scheduler = Schedulers.fromExecutor(Executors.newCachedThreadPool())
@@ -260,7 +260,7 @@ This implementation improves performance, making it slightly better than the Tom
 
 # Key takeaways
 
-**Out-of-the-box performance:** WebFlux showed better out-of-the-box performance than Tomcat in our tests, when looking at the No-op endpoints. This shows us the potential of the reactive stack.
+**Out-of-the-box performance:** WebFlux performed better than Tomcat in no-op scenarios, showcasing the reactive stack’s potential.
 
 **Respect framework conventions:**  When using WebFlux or Kotlin coroutines, sticking to the framework’s conventions and understand where and how blocking code can be used is essential to avoid adding unnecessary performance issues.
 
