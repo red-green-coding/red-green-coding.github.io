@@ -11,7 +11,7 @@ This article focuses on optimizing Spring Boot backend performance for blocking 
 
 # Context
 
-In an existing Tomcat-based project, we encountered performance issues, particularly when the system struggled to handle high volumes of incoming requests. Alongside other potential optimizations, we examined how the Tomcat stack impacted overall performance and explored whether switching to WebFlux might address some of these limitations.
+In an existing Tomcat-based project, we encountered performance issues, particularly when the system struggled to handle high volumes of incoming requests. Alongside other potential optimizations, we examined how the Tomcat stack impacted overall performance and explored whether switching to WebFlux might address some of these limitations. The system currently uses blocking I/O to communicate with certain upstream dependencies, which can significantly impact backend performance by tying up resources. This makes it crucial to choose the right stack and use appropriate coding patterns to handle high request loads efficiently.
 
 # What Metrics Matter?
 
@@ -20,7 +20,7 @@ In user-facing backend performance, two key metrics determine system responsiven
 * **Latency**: The time between a request and its response, typically measured in milliseconds (ms). Lower latency means faster response times, which directly improves the user experience by reducing wait times. We'll look at _p99_ (99th percentile).
 * **Requests per Second (RPS)**: The number of requests your system can process in one second. A higher RPS reflects your system’s ability to manage more concurrent users efficiently without degrading performance.
 
-We can use the HTTP benchmarking tool [wrk][wrk] to measure both latency and RPS. The following command simulates a workload:
+We can use the HTTP benchmarking tool [wrk][wrk] to measure both latency and throughput (RPS). The following command simulates a workload:
 
 ```shell
 wrk -t12 -c400 -d30s http://localhost:8080/endpoint
@@ -195,7 +195,7 @@ As expected, blocking I/O results align with Tomcat’s default thread pool sett
 
 When we wrap the blocking I/O operation in a _CompletableFuture_ submitted to a _separate thread pool_, we allow the controller thread to handle new connections sooner. This adjustment significantly improves throughput, with measurements showing an increase of approximately _760 RPS_.
 
-The performance results using suspend functions and the `Deferred` type in combination with `Dispatchers.IO might initially seem surprising. However, upon checking the [documentation][dispatchers-io], we note that the number of threads used by tasks in this dispatcher defaults to the greater of 64 threads or the number of CPU cores available. This limit can constrain performance if the number of concurrent tasks exceeds this threshold.
+The performance results using suspend functions and the `Deferred` type in combination with `Dispatchers.IO` might initially seem surprising. However, upon checking the [documentation][dispatchers-io], we note that the number of threads used by tasks in this dispatcher defaults to the greater of 64 threads or the number of CPU cores available. This limit can constrain performance if the number of concurrent tasks exceeds this threshold.
 
 To optimize performance further, we can create a custom dispatcher that utilizes an unbounded and caching thread pool when using `withContext(...)`. This adjustment provides more flexibility and can improve performance when handling blocking I/O in high-throughput scenarios:
 
@@ -229,7 +229,7 @@ This drastically improves the performance so it's comparable to the `Completable
 |    blocking I/O | 7.7                 | 29000                    |
 |      mono + I/O | 19.60               | 20000                    |
 
-When examining the results from the no-op endpoints, it is evident that the WebFlux stack can deliver higher performance compared to the Tomcat stack. This improved performance is largely due to WebFlux's non-blocking nature, which allows it to handle a larger number of concurrent requests while consuming less system resources.
+Results from the no-op endpoints show that WebFlux outperforms Tomcat. This improved performance is largely due to WebFlux's non-blocking nature, which allows it to handle a larger number of concurrent requests while consuming less system resources.
 
 The results for blocking I/O operations in WebFlux are particularly concerning. Performing blocking calls can easily violate the conventions of the reactive stack, leading to poor performance outcomes. These issues may not be easily identifiable through code review alone in a more complex system. Additionally these issues do not typically affect functionality, they can go undetected in standard (non-load) testing[^2].
 
@@ -286,3 +286,5 @@ This implementation improves performance, making it slightly better than the Tom
 [dispatchers-io]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html
 
 [blockhound]: https://github.com/reactor/BlockHound
+
+[kotlin-coroutines]: https://kotlinlang.org/docs/coroutines-guide.html
