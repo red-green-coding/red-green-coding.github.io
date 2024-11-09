@@ -1,11 +1,5 @@
 module Jekyll
 	class ApexDiagramBlock < Liquid::Block
-
-        def initialize(tag_name, text, tokens)
-          super
-          @text = text
-        end
-
 		def render(context)
               text = super
 
