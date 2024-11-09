@@ -116,7 +116,7 @@ apexcharts: true
           offsetY: -25,
           offsetX: -5
         }
-        }
+}
 {% endapex %}
 
 
