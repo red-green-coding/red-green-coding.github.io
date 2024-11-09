@@ -9,75 +9,115 @@ apexcharts: true
 
 ## Subtitle
 
-## Diagram
+## Diagram 1
 
-This is text in the section with the diagram
-
-## Section after diagram
-
-this is text in the section after the diagram
-
-<script>
-
-const options = {
+{% apex %}
+{
           series: [{
-            name: "Regular",
-            data: [13409.62, 12037.07, 2479.87, 430, 149.59]
-        },
-{
-            name: "Suspend",
-            data: [8600.64, 7127.31, 2160.12, 406.73, 155.87]
-        },
-{
-            name: "Dispatchers.Default",
-            data: [8006.54, 6707.28, 2817.29, 723.68, 314.04]
-        },
-{
-            name: "CompletableFuture",
-            data: [8542.10, 7183.47, 3022.05, 782.12, 330.39]
-        }
-],
+          name: 'series1',
+          data: [31, 40, 28, 51, 42, 109, 100]
+        }, {
+          name: 'series2',
+          data: [11, 32, 45, 32, 34, 52, 41]
+        }],
           chart: {
           height: 350,
-          type: 'line',
-          zoom: {
-            enabled: true,
-            type: "x" 
-          }
+          type: 'area'
         },
         dataLabels: {
           enabled: false
         },
         stroke: {
-          curve: 'straight'
+          curve: 'smooth'
+        },
+        xaxis: {
+          type: 'datetime',
+          categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
+        },
+        tooltip: {
+          x: {
+            format: 'dd/MM/yy HH:mm'
+          },
+        },
+        }
+{% endapex %}
+
+
+## Diagram 2
+
+{% apex %}
+{
+          series: [
+          {
+            name: "High - 2013",
+            data: [28, 29, 33, 36, 32, 32, 33]
+          },
+          {
+            name: "Low - 2013",
+            data: [12, 11, 14, 18, 17, 13, 13]
+          }
+        ],
+          chart: {
+          height: 350,
+          type: 'line',
+          dropShadow: {
+            enabled: true,
+            color: '#000',
+            top: 18,
+            left: 7,
+            blur: 10,
+            opacity: 0.2
+          },
+          zoom: {
+            enabled: false
+          },
+          toolbar: {
+            show: false
+          }
+        },
+        colors: ['#77B6EA', '#545454'],
+        dataLabels: {
+          enabled: true,
+        },
+        stroke: {
+          curve: 'smooth'
         },
         title: {
-          text: 'Requests per second',
+          text: 'Average High & Low Temperature',
           align: 'left'
         },
         grid: {
+          borderColor: '#e7e7e7',
           row: {
-            colors: ['#f3f3f3', 'transparent'],
+            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
             opacity: 0.5
           },
         },
+        markers: {
+          size: 1
+        },
         xaxis: {
-            type: "numeric",
-            categories: [100, 1000, 10000, 50000, 100000],
-            min: 0
+          categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+          title: {
+            text: 'Month'
+          }
         },
         yaxis: {
-            logarithmic: true,
-            min: 0
+          title: {
+            text: 'Temperature'
+          },
+          min: 5,
+          max: 40
+        },
+        legend: {
+          position: 'top',
+          horizontalAlign: 'right',
+          floating: true,
+          offsetY: -25,
+          offsetX: -5
         }
-        };
+        }
+{% endapex %}
 
-        const parent = document.getElementById('diagram');
 
-        const chartDiv = document.createElement('div');
-        parent.appendChild(chartDiv);
 
-        const chart = new ApexCharts(chartDiv, options);
-        chart.render();
-
-</script>
