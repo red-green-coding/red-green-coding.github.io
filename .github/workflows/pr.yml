@@ -9,13 +9,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Build with Jekyll
         # Outputs to the './_site' directory by default
         run: |
           mkdir -p _site
           ./go.sh build
 
-      - name: HTML5Validator
-        uses: Cyb3r-Jak3/html5validator-action
+      - uses: anishathalye/proof-html@v2
         with:
-          root: './_site'
+          directory: ./_site
+          enforce_https: false
