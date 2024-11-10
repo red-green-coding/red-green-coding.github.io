@@ -1,4 +1,4 @@
-FROM ruby
+FROM ruby:3.3
 
 ENV BUNDLE_GEMFILE=/app/bundle/Gemfile
 
