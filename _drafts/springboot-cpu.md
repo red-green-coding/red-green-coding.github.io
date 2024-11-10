@@ -12,19 +12,19 @@ This article focuses on optimizing Spring Boot backend performance for CPU-inten
 
 # Context
 
-In [a previous article][part-1], we explored performance for blocking I/O operations in Spring Boot applications, comparing Tomcat and WebFlux stacks. Now, we shift our focus to CPU-intensive tasks. While blocking I/O primarily affects system responsiveness by tying up resources, CPU-heavy operations might require efficient task management and execution strategies to prevent bottlenecks and maintain high throughput under load. This part examines both Tomcat and WebFlux configurations for handling CPU-bound operations, analyzing how each stack manages these tasks and the performance implications of each approach.
+In [a previous article][part-1], we explored performance for blocking I/O operations in Spring Boot applications, comparing Tomcat and WebFlux stacks. Now, we shift our focus to CPU-intensive tasks. While blocking I/O primarily affects system responsiveness by tying up resources, CPU-bound operations might require efficient task management and execution strategies to prevent bottlenecks and maintain high throughput under load. This part examines both Tomcat and WebFlux configurations for handling CPU-bound operations, analyzing how each stack manages these tasks and the performance implications of each approach.
 
 # Service Setup
 
 We will compare two Spring Boot applications that perform some CPU-intensive operations. Similar to our approach in [part 1][part-1], we will use one application based on the spring-boot-starter-web (Tomcat) and another using spring-boot-starter-webflux (Netty by default). Both applications will be packaged as Docker images and deployed in containers to ensure a consistent testing environment.
 
-To evaluate the performance of CPU-heavy tasks, we will implement several endpoints to simulate a compute heavy scenario. These endpoints will demonstrate how each stack manages computational workloads, allowing us to analyze the impact on responsiveness and throughput.
+To evaluate the performance of CPU-heavy tasks, we will implement several endpoints to simulate a compute intensive scenario. These endpoints will demonstrate how each stack manages computational workloads, allowing us to analyze the impact on responsiveness and throughput.
 
 Refer to [part 1][part-1] for details on the overall setup. It also covers the metrics we monitor and the methods used to collect them.
 
-## Endpoints performing CPU heavy calculations
+## REST Endpoints performing CPU-intensive calculations
 
-First we created a function to simulate a CPU heavy calculations. 
+First we created a function to simulate a CPU-bound calculations. 
 
 {% highlight kotlin %}
 fun performCpuWork(limit: Int): String {
@@ -48,7 +48,7 @@ fun calculatePrimes(limit: Int): List<Int> {
 {% endhighlight %}
 
 The function generates a list of all prime numbers up to a given limit. 
-This function is CPU-heavy because:
+This function is CPU-demanding because:
 
 1. It performs nested loops for each number, iterating over potential divisors up to the square root.
 2. As the limit increases, the number of calculations grows significantly, making it computationally intensive due to the high volume of modulo operations, square root operations and conditional checks.
@@ -109,12 +109,32 @@ fun cpuThreadpool(@RequestParam("limit") limit: Int): CompletableFuture<String> 
 
 ### WebFlux/Netty
 
-#### Mono + Schedulers.parallel()
+We will re-use the examples from the tomcat stack above: 
+* Regular function + do work on the controller thread
+* suspend function + do work on the controller thread
+* suspend function + Dispatchers.Default
 
-In this example on the reactive stack, we wrap the calculation in a `Mono` and run it on `Schedulers.parallel()`. This scheduler is backed by a fixed-size thread pool, optimized for parallel CPU-bound work, with a number of threads equal to the available CPU cores.
+#### Mono
+
+In addition to the previous examples, we use a approach specific to the reactive stack. In this example, we wrap the CPU-bound calculation inside a `Mono` without any additional precautions:
 
 {% highlight kotlin %}
 @GetMapping("/cpu3")
+fun monoCpu(@RequestParam("limit") limit: Int): Mono<String> {
+    return Mono.fromCallable {
+        performCpuWork(limit)
+    }
+}
+{% endhighlight %}
+
+This approach uses the reactive Mono to handle the CPU work asynchronously, but without offloading to a dedicated Scheduler. 
+
+#### Mono + Schedulers.parallel()
+
+To optimize the CPU-bound task, we run the Mono on `Schedulers.parallel()`. This scheduler is backed by a fixed-size thread pool, optimized for parallel CPU-bound work, with a number of threads equal to the available CPU cores:
+
+{% highlight kotlin %}
+@GetMapping("/cpu4")
 fun monoCpu(@RequestParam("limit") limit: Int): Mono<String> {
     return Mono.fromCallable {
         performCpuWork(limit)
@@ -294,6 +314,15 @@ Offloading CPU work only helps with high CPU loads. When CPU work is light, swit
 74.05]
             },
             {
+                name: "Mono",
+                data: [17188.41,
+16533.75,
+4478.27,
+672.16,
+263.97,
+101.86,
+54.87]
+            }, {
                 name: "Mono + Schedulers.parallel()",
                 data: [16322.02,
 15261.63,
@@ -348,6 +377,8 @@ Offloading CPU work only helps with high CPU loads. When CPU work is light, swit
 
 > ⬆ Note: The y-axis uses a logarithmic scale to highlight differences on the right side of the chart.
 
+The results are similar in the WebFlux stack, but the difference between direct execution and offloaded computation is less pronounced than in the Tomcat stack. Offloading CPU-heavy computation still improves performance, but the RPS gains from offloading don't seem as significant.
+
 {% apex %}
 {
     series: [{
@@ -383,6 +414,15 @@ Offloading CPU work only helps with high CPU loads. When CPU work is light, swit
 5.39*1000]
             },
             {
+                name: "Mono",
+                data: [85.31,
+83.98,
+195.28,
+4.65 * 1000,
+14.98 * 1000,
+24.61 * 1000,
+28.41 * 1000]
+            } , {
                 name: "Mono + Schedulers.parallel()",
                 data: [82.36,
 82.80,
@@ -435,9 +475,13 @@ Offloading CPU work only helps with high CPU loads. When CPU work is light, swit
 }
 {% endapex %}
 
-The results are similar in the WebFlux stack, but the difference between direct execution and offloaded computation is less pronounced than in the Tomcat stack. Offloading CPU-heavy computation still improves performance, but the gains from offloading are not as significant.
+However, the impact is more noticeable when we look at latency. The latency values for direct executions are worse than those observed in the Tomcat stack. We interpret this as the combined cost of frequent context switches and the added latency from performing work on the event loop of the reactive stack. A key takeaway/reminder here: Avoid performing I/O or long calculations on the event loop.
 
-# Be more cooperative!
+# Improvements
+
+Finally, we explore two approaches to further improve performance. One involves using cooperative concurrency for CPU-bound logic, while the other focuses on limiting concurrency without the need for a thread pool.
+
+## Be cooperative!
 
 When multiple CPU-intensive calculations run concurrently on different coroutines within `Schedulers.Default`, latencies can increase as each calculation holds the CPU for an extended period.
 
@@ -649,9 +693,159 @@ A similar trend appears in p99 latency values, where the cooperative change cons
 
 Overall, this approach proves highly effective. However, a potential drawback is that the computation logic must be coroutine-aware by using the `suspend` keyword and using the library function `yield()`, which may not always be desirable or possible.
 
+## Limiting concurrency
+
+An alternative approach to improve performance is to limit concurrency in our CPU-intensive code:
+
+{% highlight kotlin %}
+val semaphore = Semaphore(1)
+
+fun performCpuWork(limit: Int): String {
+    semaphore.acquire()
+
+    try {
+        return calculatePrimes(limit).size.toString()
+    } finally {
+        semaphore.release()
+    }
+}
+{% endhighlight %}
+
+By restricting the number of active concurrent calculations using a `Semaphore`, we control the number of tasks that can access the CPU-bound code simultaneously, reducing context switching and potentially improving performance.
+
+The argument in the semaphore constructor sets the maximum number of concurrent tasks allowed to access the CPU-bound code to one at a time, effectively serializing access. We chose this limit to match the number of our CPU cores.
+
+{% apex %}
+{
+    series: [{
+                name: "Regular (baseline)",
+                data: [13409.62, 12037.07, 2479.87, 430, 149.59, 59.92, 31.30]
+            },
+            {
+                name: "Regular + Semapore",
+                data: [13934.53,
+11236.27,
+3237.73,
+760.23,
+331.47,
+135.89,
+80.35]
+            }
+            ],
+    chart: {
+        height: 350,
+        type: 'line',
+        zoom: {
+            enabled: false,
+            type: "x"
+        }
+    },
+    dataLabels: {
+        enabled: false
+    },
+    stroke: {
+        curve: 'straight'
+    },
+    title: {
+        text: 'Requests per second',
+        align: 'left'
+    },
+    grid: {
+        row: {
+            colors: ['#f3f3f3', 'transparent'],
+            opacity: 0.5
+        },
+    },
+    xaxis: {
+        type: "numeric",
+        categories: [100, 1000, 10000, 50000, 100000, 200000, 300000],
+        min: 0,
+        title: {
+            text: "number of primes"
+        }
+    },
+    yaxis: {
+        logarithmic: true,
+        min: 0,
+        title: {
+            text: "rps"
+        }
+    }
+}
+{% endapex %}
+
+As expected, we observe a positive impact on RPS.
+
+{% apex %}
+{
+    series: [{
+                name: "Regular (baseline)",
+                data: [85.51, 86.67, 298.28, 4 * 1000, 5.9 * 1000, 9.3 * 1000, 15 * 1000]
+            },
+            {
+                name: "Regular + Semaphore",
+                data: [91.66,
+171.36,
+236.14,
+723.05,
+1.26 * 1000,
+2.94 * 1000,
+5.09 * 1000]
+            },
+            ],
+    chart: {
+        height: 350,
+        type: 'line',
+        zoom: {
+            enabled: false,
+            type: "x"
+        }
+    },
+    dataLabels: {
+        enabled: false
+    },
+    stroke: {
+        curve: 'straight'
+    },
+    title: {
+        text: 'Latency p99 (ms)',
+        align: 'left'
+    },
+    grid: {
+        row: {
+            colors: ['#f3f3f3', 'transparent'],
+            opacity: 0.5
+        },
+    },
+    xaxis: {
+        type: "numeric",
+        categories: [100, 1000, 10000, 50000, 100000, 200000, 300000],
+        min: 0,
+        title: {
+            text: "number of primes"
+        }
+    },
+    yaxis: {
+        logarithmic: false,
+        min: 0,
+        title: {
+            text: "latency p99 ms"
+        }
+    }
+}
+{% endapex %}
+
+We also see improvements in latency. In general, performance gains here come from lowering concurrency in the CPU-intensive part. This can be done with a dedicated thread pool or, as in this example, by using a semaphore to limit simultaneous tasks.
+
+A semaphore provides fine-grained control over concurrency with a lower abstraction level, which is simple to use but requires careful handling to avoid issues like deadlocks. A fixed thread pool, on the other hand, abstracts task management and handles scheduling automatically, making it easier for scaling parallel workloads. While a semaphore is straightforward for controlling a single resource, a shared thread pool can simplify managing multiple concurrent tasks.
+
 # Key takeaways
 
-**Offload CPU heavy computations to improve performance**: Despite being aware of this approach, we still found it interesting how much of a difference offloading CPU-bound tasks to specialized thread pools can make.
+**Offload CPU-heavy computations to improve performance**: Moving compute-intensive tasks to a dedicated worker pool can significantly enhance system performance. 
+
+**Optional on Tomcat, Mandatory on WebFlux**: Offloading CPU work can be an optional improvement in a Tomcat stack. However, in a WebFlux (reactive) stack, it’s important to avoid blocking or long calculations, as they can have a more severe impact on performance. Be mindful of the specific requirements and limitations of your environment to make the right design decisions.
+
+**Limit concurrency for CPU-bound code**: Limiting concurrency in CPU-heavy code using e.g. a Semaphore can be a good alternative (though more low-level) to improve the performance of such system.
 
 **Task size matters**: This improvement was noticeable only with more intensive calculations (e.g., using a parameter value of _100,000k+_ for our prime number calculation). For lighter CPU work, it even added additional overhead. Thus, this setup is irrelevant for tasks with relatively low CPU utilization..
 
