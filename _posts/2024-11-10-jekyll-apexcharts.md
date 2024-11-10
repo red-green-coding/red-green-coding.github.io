@@ -6,7 +6,7 @@ tags: jekyll apexcharts
 apexcharts: true
 ---
 
-To add charts to our blog posts, we needed an integration with Jekyll but couldn’t find a suitable plugin. Here’s the custom solution we created. It builds on [ApexCharts.js][apexcharts], a flexible JavaScript library that makes it easy to create a wide range of appealing and interactive visualizations.
+To add charts to our blog posts, we needed an integration with Jekyll but couldn’t find a suitable plugin. Here’s the custom solution we created. It builds on [ApexCharts.js][apexcharts], a flexible JavaScript library that makes it easy to create a wide range of appealing visualizations.
 
 ## Step 1: Include ApexCharts in Your Jekyll Site
 
@@ -33,7 +33,7 @@ apexcharts: true
 
 ## Step 2: Create a Custom Liquid Tag
 
-We made a custom Liquid tag in `_plugins/apex_charts.rb` to easily embed ApexCharts:
+We created a [custom liquid tag][jekyll-tags] in `_plugins/apex_charts.rb` to easily embed ApexCharts:
 
 ```ruby
 module Jekyll
@@ -59,6 +59,8 @@ end
 
 Liquid::Template.register_tag('apexcharts', Jekyll::ApexChartsBlock)
 ```
+
+The custom tag uses the provided configuration block to embed an ApexChart element directly into the page.
 
 ## Step 3: Embed Charts in Your Post
 
@@ -97,5 +99,6 @@ Now, adding a chart is simple. Just use the `{% raw %}{% apexcharts %}{% endraw 
 }
 {% endapexcharts %}
 
+[jekyll-tags]: https://jekyllrb.com/docs/plugins/tags/
 [apexcharts]: https://apexcharts.com/
 [apexcharts-example]: https://apexcharts.com/docs/creating-first-javascript-chart/
