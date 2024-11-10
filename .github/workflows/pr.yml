@@ -20,3 +20,6 @@ jobs:
         with:
           directory: ./_site
           enforce_https: false
+          ignore_empty_alt: true
+          ignore_url: |
+            https://www.baeldung.com
