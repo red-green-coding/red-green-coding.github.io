@@ -1,5 +1,5 @@
 module Jekyll
-	class ApexDiagramBlock < Liquid::Block
+	class ApexChartsBlock < Liquid::Block
 		def render(context)
               text = super
 
@@ -19,4 +19,4 @@ module Jekyll
 	end
 end
 
-Liquid::Template.register_tag('apex', Jekyll::ApexDiagramBlock)
+Liquid::Template.register_tag('apexcharts', Jekyll::ApexChartsBlock)
