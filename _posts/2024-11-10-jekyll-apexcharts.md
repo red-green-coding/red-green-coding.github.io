@@ -99,6 +99,22 @@ Now, adding a chart is simple. Just use the `{% raw %}{% apexcharts %}{% endraw 
 }
 {% endapexcharts %}
 
+## Alternative: Include Charts from an External File
+
+Another option is to keep the chart configuration in a separate file, such as `_includes/jekyll-apexcharts/example.json`. This keeps your posts cleaner and easier to manage.
+
+To include the chart in your post, use:
+
+```markdown
+{% raw %}{% apexcharts %}
+{% include jekyll-apexcharts/example.json %}
+{% endapexcharts %}{% endraw %}
+```
+
+{% apexcharts %}
+{% include jekyll-apexcharts/example.json %}
+{% endapexcharts %}
+
 [jekyll-tags]: https://jekyllrb.com/docs/plugins/tags/
 [apexcharts]: https://apexcharts.com/
 [apexcharts-example]: https://apexcharts.com/docs/creating-first-javascript-chart/
