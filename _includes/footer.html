@@ -1,0 +1,71 @@
+<footer class="site-footer h-card">
+    <data class="u-url" href="{{ "/" | relative_url }}"></data>
+
+    <div class="wrapper">
+
+        <div class="footer-col-wrapper">
+            <div class="footer-col">
+                <p class="feed-subscribe">
+                    <a href="{{ site.feed.path | default: 'feed.xml' | absolute_url }}">
+                        <svg class="svg-icon orange">
+                            <use xlink:href="{{ 'assets/minima-social-icons.svg#rss' | relative_url }}"></use>
+                        </svg><span>Subscribe</span>
+                    </a>
+                </p>
+                {%- if site.author %}
+                <ul class="contact-list">
+                    {% if site.author.name -%}
+                    <li class="p-name">{{ site.author.name | escape }}</li>
+                    {% endif -%}
+                    {% if site.author.email -%}
+                    <li><a class="u-email" href="mailto:{{ site.author.email }}">{{ site.author.email }}</a></li>
+                    {%- endif %}
+                </ul>
+                {%- endif %}
+            </div>
+            <div class="footer-col">
+                <p>{{ site.description | escape }}</p>
+            </div>
+        </div>
+
+        <div class="social-links">
+            {%- include social.html -%}
+        </div>
+
+    </div>
+
+</footer>
+
+{% if page.apexcharts2 %}
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    window.addEventListener('load', function() {
+        const elements = document.querySelectorAll('.language-apexchart');
+
+        elements.forEach(function(element) {
+
+            const options = JSON.parse(element.textContent); // Convert text content to a JavaScript object
+
+            // the highlight elements renders to figure -> pre -> code
+            // we navigate to the parent of that
+            const preElement = element.parentElement
+            const figureElement = preElement.parentElement
+            const parent = figureElement.parentElement
+
+            // Create a new div element
+            const newDiv = document.createElement('div');
+
+            // Optionally, you can set a class or ID to the new div
+            newDiv.classList.add('new-chart-container');
+
+            // Replace the original element tree with the new div
+            parent.replaceChild(newDiv, figureElement);
+
+            const chart = new ApexCharts(newDiv, options);
+            chart.render();
+        });
+    });
+</script>
+
+{% endif %}
