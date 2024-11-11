@@ -711,7 +711,7 @@ fun performCpuWork(limit: Int): String {
 }
 {% endhighlight %}
 
-By restricting the number of active concurrent calculations with a Semaphore, we control how many tasks can access the CPU-bound code simultaneously, reducing context switching and potentially improving performance.
+By restricting the number of active concurrent calculations with a Semaphore, we control how many tasks can access the CPU-bound code simultaneously, reducing context switching and potentially improving performance[^3].
 
 Here, the Semaphore argument is set to match the number of CPU cores. This ensures only as many tasks as there are CPU cores can run concurrently.
 
@@ -862,6 +862,9 @@ A semaphore provides fine-grained control over concurrency with a lower abstract
 [schedulers-parallel]: https://projectreactor.io/docs/core/milestone/reference/coreFeatures/schedulers.html
 [yield]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/yield.html
 [cooperative]: https://en.wikipedia.org/wiki/Cooperative_multitasking
+[kotlin-semaphore]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.sync/-semaphore/
+[kotlin-semaphore-withpermit]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.sync/with-permit.html
 
 [^1]: One thread per CPU core, with a minimum of 2 threads.
 [^2]: A key takeaway/reminder here: Avoid performing I/O or long calculations on the event loop!
+[^3]: We chose to use a Java Semaphore here. Kotlin also has its own [semaphore][kotlin-semaphore], which is more idiomatic to Kotlin code and includes the [withPermit][kotlin-semaphore-withpermit] function, but it can only be used within suspend functions.
