@@ -70,7 +70,7 @@ fun cpuDirect0(@RequestParam("limit") limit: Int): String {
 
 #### Suspend
 
-In this version, we perform the CPU-intensive work within the controller coroutine. This setup uses Kotlin’s suspending functions and runs on the thread of the controller coroutine.
+In this version, we perform the CPU-intensive work within the controller coroutine. This setup uses Kotlin’s suspending functions and runs on the controller coroutine.
 
 {% highlight kotlin %}
 @GetMapping("/cpu1")
@@ -216,7 +216,7 @@ The limit parameter (number of prime calculations) was set to _1000, 10,000, 50,
 
 > ⬆ Note: The y-axis uses a logarithmic scale to highlight differences on the right side of the chart.
 
-With lower CPU work (fewer prime number calculations), using a separate worker thread actually performs worse than direct execution, as the cost of switching threads outweighs any gains. However, as CPU work increases, offloading to a separate thread doubles the RPS for both the `CompletableFuture` and `Dispatchers.Default` versions.
+With lower CPU work (fewer prime number calculations), using a separate worker thread actually performs worse than direct execution, as the cost of switching threads outweighs any gains. However, as CPU work increases, offloading doubles the RPS for both the `CompletableFuture` and `Dispatchers.Default` versions.
 
 {% apex %}
 {
@@ -475,7 +475,7 @@ The results are similar in the WebFlux stack, but the difference between direct 
 }
 {% endapex %}
 
-However, the impact is more noticeable when we look at latency. The latency values for direct executions are worse than those observed in the Tomcat stack. We interpret this as the combined cost of frequent context switches and the added latency from performing work on the event loop of the reactive stack. A key takeaway/reminder here: Avoid performing I/O or long calculations on the event loop.
+However, the impact is more noticeable when we look at latency. The latency values for direct executions are worse than those observed in the Tomcat stack. We interpret this as the combined cost of frequent context switches and the added latency from performing work on the event loop of the reactive stack[^2]. 
 
 # Improvements
 
@@ -485,7 +485,7 @@ Finally, we explore two approaches to further improve performance. One involves 
 
 When multiple CPU-intensive calculations run concurrently on different coroutines within `Schedulers.Default`, latencies can increase as each calculation holds the CPU for an extended period.
 
-Improving coroutine performance in such CPU-bound tasks is possible by structuring the logic to be _cooperative_, allowing CPU time to be distributed more evenly between the active calculations.
+Improving coroutine performance in such CPU-bound tasks is possible by structuring the logic to be [cooperative][cooperative], allowing CPU time to be distributed more evenly between the active calculations.
 
 {% highlight kotlin %}
 suspend fun performCpuWorkCoop(limit: Int, batchSize: Int): String {
@@ -510,7 +510,7 @@ suspend fun calculatePrimesCoop(limit: Int, batchSize: Int): List<Int> {
 }
 {% endhighlight %}
 
-We modified the code to call [yield()][yield] every `batchSize` elements, allowing control to return to the coroutine scheduler and enabling other coroutines to run concurrently.
+We modified the code to call [yield()][yield] every `batchSize` elements, allowing control to return to the coroutine scheduler and enabling other coroutines to run concurrently. 
 
 This change should help reduce p99 latency by processing tasks across multiple coroutines more evenly. Next, we’ll measure the effects of varying `batchSize` values on performance.
 
@@ -698,7 +698,7 @@ Overall, this approach proves highly effective. However, a potential drawback is
 An alternative approach to improve performance is to limit concurrency in our CPU-intensive code:
 
 {% highlight kotlin %}
-val semaphore = Semaphore(1)
+val semaphore = Semaphore(Runtime.getRuntime().availableProcessors())
 
 fun performCpuWork(limit: Int): String {
     semaphore.acquire()
@@ -711,9 +711,9 @@ fun performCpuWork(limit: Int): String {
 }
 {% endhighlight %}
 
-By restricting the number of active concurrent calculations using a `Semaphore`, we control the number of tasks that can access the CPU-bound code simultaneously, reducing context switching and potentially improving performance.
+By restricting the number of active concurrent calculations with a Semaphore, we control how many tasks can access the CPU-bound code simultaneously, reducing context switching and potentially improving performance.
 
-The argument in the semaphore constructor sets the maximum number of concurrent tasks allowed to access the CPU-bound code to one at a time, effectively serializing access. We chose this limit to match the number of our CPU cores.
+Here, the Semaphore argument is set to match the number of CPU cores. This ensures only as many tasks as there are CPU cores can run concurrently.
 
 {% apex %}
 {
@@ -841,17 +841,19 @@ A semaphore provides fine-grained control over concurrency with a lower abstract
 
 # Key takeaways
 
-**Offload CPU-heavy computations to improve performance**: Moving compute-intensive tasks to a dedicated worker pool can significantly enhance system performance. 
+**Limit concurrency for CPU-bound code**: Reducing concurrency in CPU-intensive code can improve performance by minimizing context switching.
 
-**Optional on Tomcat, Mandatory on WebFlux**: Offloading CPU work can be an optional improvement in a Tomcat stack. However, in a WebFlux (reactive) stack, it’s important to avoid blocking or long calculations, as they can have a more severe impact on performance. Be mindful of the specific requirements and limitations of your environment to make the right design decisions.
+**Use CPU Worker Pool**: A common approach to limiting concurrency is offloading compute-intensive tasks to a dedicated worker pool with a fixed number of threads, typically matching the available CPU cores.
 
-**Limit concurrency for CPU-bound code**: Limiting concurrency in CPU-heavy code using e.g. a Semaphore can be a good alternative (though more low-level) to improve the performance of such system.
+**Limit Concurrency with Semaphores**: A semaphore offers another way to control concurrency in CPU-bound tasks by setting a maximum limit on concurrent executions, helping to reduce context switching and balance CPU load without requiring a separate worker pool.
 
-**Task size matters**: This improvement was noticeable only with more intensive calculations (e.g., using a parameter value of _100,000k+_ for our prime number calculation). For lighter CPU work, it even added additional overhead. Thus, this setup is irrelevant for tasks with relatively low CPU utilization..
+**Optional on Tomcat, Mandatory on WebFlux**: Offloading CPU work can be an optional improvement in a Tomcat stack. However, in a WebFlux (reactive) stack, it’s essential to avoid blocking or long calculations, as they can more severely impact performance. Be mindful of the specific requirements and limitations of your stack to make informed design decisions.
+
+**Task size matters**: The need for optimization became apparent only with larger workloads (e.g., with a parameter of _50,000+_ for our prime number calculation). For lighter CPU loads, the added complexity provided little benefit or even introduced overhead, making such optimizations unnecessary for low-intensity tasks.
 
 **Cooperative processing**: Modifying CPU-bound tasks to be cooperative, by adding `yield()` calls, can significantly enhance both RPS and latency for coroutine-based implementations. This adjustment, while effective, requires restructuring the logic as a `suspend` function, which may not always be practical. 
 
-**Do your own measurements**: Whether it’s beneficial to use a thread pool for CPU-bound work depends heavily on the use case and the amount of computation involved. Always perform your own measurements to determine if it’s worth the effort!
+**Do your own measurements**: The performance impact of concurrency strategies, such as offloading, limiting concurrency, and cooperative processing, varies widely based on the specific workload and CPU demands. Always measure and evaluate these approaches in the context of your unique requirements to ensure the best results.
 
 # Notes
 
@@ -859,5 +861,7 @@ A semaphore provides fine-grained control over concurrency with a lower abstract
 [dispatchers-default]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-default.html
 [schedulers-parallel]: https://projectreactor.io/docs/core/milestone/reference/coreFeatures/schedulers.html
 [yield]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/yield.html
+[cooperative]: https://en.wikipedia.org/wiki/Cooperative_multitasking
 
 [^1]: One thread per CPU core, with a minimum of 2 threads.
+[^2]: A key takeaway/reminder here: Avoid performing I/O or long calculations on the event loop!
