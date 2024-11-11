@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Tomcat vs. WebFlux with CPU intensive calculations"
+title:  "Tomcat vs. WebFlux for CPU-bound workloads"
 categories: [spring-boot]
 tags: spring-boot kotlin webflux tomcat
 apexcharts: true
