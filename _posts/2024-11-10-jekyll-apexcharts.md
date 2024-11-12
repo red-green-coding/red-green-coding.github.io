@@ -6,9 +6,9 @@ tags: jekyll apexcharts
 apexcharts: true
 ---
 
-To add charts to our blog posts, we needed an integration with Jekyll but couldn’t find a suitable plugin. Here’s the custom solution we created. It builds on [ApexCharts.js][apexcharts], a flexible JavaScript library that makes it easy to create a wide range of appealing visualizations. It builds on ideas we found in the [Notepad.ONGHU][notepad.onghu] blog.
+To add charts to our blog posts, we needed a Jekyll integration but couldn’t find a suitable plugin. Here’s the custom solution we developed. It leverages [ApexCharts.js][apexcharts], a flexible JavaScript library that makes it easy to create appealing visualizations, and is inspired by ideas from the [Notepad.ONGHU][notepad.onghu] blog.
 
-We want to be able to embed an ApexChart like this:
+Our goal was to embed an ApexChart with configurations like this:
 
 <pre>
 ```apexchart
@@ -27,11 +27,11 @@ We want to be able to embed an ApexChart like this:
 ```
 </pre>
 
-The chart here is the [Creating Your First JavaScript Chart][apexcharts-example] example from the ApexCharts documentation.
+This example, taken from the ApexCharts documentation on [Creating Your First JavaScript Chart][apexcharts-example] showcases a simple line chart of sales data over the years.
 
 ## Step 1: Enable ApexCharts in Your Jekyll Site
 
-To load ApexCharts only when needed, we added the script conditionally in `_includes/footer.html`:
+To load ApexCharts only when needed, add the following conditional script in `_includes/footer.html`:
 
 ```html
 {% raw %}{% if page.apexcharts %}{% endraw %}
@@ -41,7 +41,7 @@ To load ApexCharts only when needed, we added the script conditionally in `_incl
 {% raw %}{% endif %}{% endraw %}
 ```
 
-In the same file we add another script block. This script block will execute after the page has loaded. It will find all elements that contain apex configuration and dynamically replace them with a rendered version that uses the provided configuration.
+In the same file (within the same conditional), add another script block to render charts after the page loads. This script will find all code blocks containing ApexCharts configuration and replace them with rendered charts:
 
 ```html
 <script>
@@ -79,7 +79,7 @@ In the same file we add another script block. This script block will execute aft
 </script>
 ```
 
-In each post where you want charts, modify the front matter:
+In each post where you want to use ApexCharts, modify the front matter to include `apexcharts: true`:
 
 ```markdown
 ---
@@ -91,11 +91,11 @@ apexcharts: true
 
 ## Step 2: Embed Charts in Your Post
 
-Now, adding a chart is simple. Just put the configuration for your ApexChart in a markdown language element as in the above example.
+Embedding a chart is straightforward. Add the ApexChart configuration directly in a code block with the language specified as apexchart. Here’s an example:
 
 ### JavaScript content
 
-You now can embed an ApexChart diagram by providing the configuration as a languabe block:
+When the page loads, the script will detect this apexchart block, parse the configuration, and render it as an interactive chart using ApexCharts.
 
 <pre>
 ```apexchart
@@ -131,7 +131,7 @@ You now can embed an ApexChart diagram by providing the configuration as a langu
 
 ### JSON content
 
-Alternatively you can use JSON syntax to define the diagram
+Alternatively, you can define the chart configuration using JSON syntax:
 
 <pre>
 ```apexchart
@@ -164,6 +164,22 @@ Alternatively you can use JSON syntax to define the diagram
   }
 }
 ```
+
+### Include JSON content
+
+A third option is to keep the chart configuration in an external JSON file for a cleaner post. Place the configuration in e.g. `_includes/jekyll-apexcharts/example.json`. To include the chart in your post, use:
+
+<pre>
+```apexchart
+{% include jekyll-apexcharts/example.json %}
+```
+</pre>
+
+```apexchart
+{% include jekyll-apexcharts/example.json %}
+```
+
+This approach keeps your post sources shorter and easier to read, while still allowing ApexCharts to render the chart.
 
 [jekyll-tags]: https://jekyllrb.com/docs/plugins/tags/
 [apexcharts]: https://apexcharts.com/
