@@ -153,7 +153,7 @@ The limit parameter (number of prime calculations) was set to _1000, 10,000, 50,
 
 ## Tomcat
 
-{% apex %}
+```apexchart
 {
     series: [{
                 name: "Regular",
@@ -212,13 +212,13 @@ The limit parameter (number of prime calculations) was set to _1000, 10,000, 50,
         }
     }
 }
-{% endapex %}
+```
 
 > ⬆ Note: The y-axis uses a logarithmic scale to highlight differences on the right side of the chart.
 
 With lower CPU work (fewer prime number calculations), using a separate worker thread actually performs worse than direct execution, as the cost of switching threads outweighs any gains. However, as CPU work increases, offloading doubles the RPS for both the `CompletableFuture` and `Dispatchers.Default` versions.
 
-{% apex %}
+```apexchart
 {
     series: [{
                 name: "Regular",
@@ -277,7 +277,7 @@ With lower CPU work (fewer prime number calculations), using a separate worker t
         }
     }
 }
-{% endapex %}
+```
 
 Examining p99 latency shows that as CPU work increases, latency also rises. However, with a separate thread pool, latency grows at a much slower rate compared to direct execution.
 
@@ -286,7 +286,7 @@ Offloading CPU work only helps with high CPU loads. When CPU work is light, swit
 
 ## WebFlux
 
-{% apex %}
+```apexchart
 {
     series: [{
                 name: "Regular",
@@ -373,13 +373,13 @@ Offloading CPU work only helps with high CPU loads. When CPU work is light, swit
         }
     }
 }
-{% endapex %}
+```
 
 > ⬆ Note: The y-axis uses a logarithmic scale to highlight differences on the right side of the chart.
 
 The results are similar in the WebFlux stack, but the difference between direct execution and offloaded computation is less pronounced than in the Tomcat stack. Offloading CPU-heavy computation still improves performance, but the RPS gains from offloading don't seem as significant.
 
-{% apex %}
+```apexchart
 {
     series: [{
                 name: "Regular",
@@ -473,7 +473,7 @@ The results are similar in the WebFlux stack, but the difference between direct 
         }
     }
 }
-{% endapex %}
+```
 
 However, the impact is more noticeable when we look at latency. The latency values for direct executions are worse than those observed in the Tomcat stack. We interpret this as the combined cost of frequent context switches and the added latency from performing work on the event loop of the reactive stack[^2]. 
 
@@ -514,7 +514,7 @@ We modified the code to call [yield()][yield] every `batchSize` elements, allowi
 
 This change should help reduce p99 latency by processing tasks across multiple coroutines more evenly. Next, we’ll measure the effects of varying `batchSize` values on performance.
 
-{% apex %}
+```apexchart
 {
     series: [
             {
@@ -595,11 +595,11 @@ This change should help reduce p99 latency by processing tasks across multiple c
         }
     }
 }
-{% endapex %}
+```
 
 The change positively impacts RPS, showing improvements over the plain suspend baseline. Larger batch sizes are advantageous, likely due to the overhead introduced by frequent `yield()` calls.
 
-{% apex %}
+```apexchart
 {
     series: [
             {
@@ -687,7 +687,7 @@ The change positively impacts RPS, showing improvements over the plain suspend b
         }
     }
 }
-{% endapex %}
+```
 
 A similar trend appears in p99 latency values, where the cooperative change consistently reduces latency. Larger batch sizes once again seem beneficial.
 
@@ -715,7 +715,7 @@ By restricting the number of active concurrent calculations with a Semaphore, we
 
 Here, the Semaphore argument is set to match the number of CPU cores. This ensures only as many tasks as there are CPU cores can run concurrently.
 
-{% apex %}
+```apexchart
 {
     series: [{
                 name: "Regular (baseline)",
@@ -772,11 +772,11 @@ Here, the Semaphore argument is set to match the number of CPU cores. This ensur
         }
     }
 }
-{% endapex %}
+```
 
 As expected, we observe a positive impact on RPS.
 
-{% apex %}
+```apexchart
 {
     series: [{
                 name: "Regular (baseline)",
@@ -833,7 +833,7 @@ As expected, we observe a positive impact on RPS.
         }
     }
 }
-{% endapex %}
+```
 
 We also see improvements in latency. In general, performance gains here come from lowering concurrency in the CPU-intensive part. This can be done with a dedicated thread pool or, as in this example, by using a semaphore to limit simultaneous tasks.
 

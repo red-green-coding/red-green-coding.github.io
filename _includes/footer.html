@@ -36,7 +36,7 @@
 
 </footer>
 
-{% if page.apexcharts2 %}
+{% if page.apexcharts %}
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
@@ -45,13 +45,18 @@
 
         elements.forEach(function(element) {
 
-            const options = JSON.parse(element.textContent); // Convert text content to a JavaScript object
+            let options;
 
-            // the highlight elements renders to figure -> pre -> code
+            try {
+                options = JSON.parse(element.textContent)
+            } catch (e) {
+                options = new Function("return " + element.textContent)()
+            }
+
+            // the highlight elements renders to pre -> code
             // we navigate to the parent of that
             const preElement = element.parentElement
-            const figureElement = preElement.parentElement
-            const parent = figureElement.parentElement
+            const parent = preElement.parentElement
 
             // Create a new div element
             const newDiv = document.createElement('div');
@@ -60,7 +65,7 @@
             newDiv.classList.add('new-chart-container');
 
             // Replace the original element tree with the new div
-            parent.replaceChild(newDiv, figureElement);
+            parent.replaceChild(newDiv, preElement);
 
             const chart = new ApexCharts(newDiv, options);
             chart.render();
