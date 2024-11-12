@@ -1,14 +1,14 @@
 ---
 layout: post
-title:  "Embedding ApexCharts.js in a Jekyll Blog Post"
+title:  "Embedding ApexCharts.js chart in a Jekyll Blog Post"
 categories: [jekyll]
-tags: jekyll apexcharts
+tags: jekyll apexcharts chart
 apexcharts: true
 ---
 
-To add charts to our blog posts, we needed a Jekyll integration but couldn’t find a suitable plugin. Here’s the custom solution we developed. It leverages [ApexCharts.js][apexcharts], a flexible JavaScript library that makes it easy to create appealing visualizations, and is inspired by ideas from the [Notepad.ONGHU][notepad.onghu] blog.
+To integrate charts into our blog posts, we initially searched for a suitable Jekyll plugin but didn’t find one that met our needs. This led us to create a custom solution using [ApexCharts.js][apexcharts]. ApexCharts proved to be easy to integrate, flexible, and capable of producing appealing visualizations. Inspired by ideas from the [Notepad.ONGHU][notepad.onghu] blog, here’s our approach.
 
-Our goal was to embed an ApexChart with configurations like this:
+Our solution ended up allowing us to embed ApexCharts into our blog posts with configurations like this:
 
 <pre>
 ```apexchart
@@ -27,7 +27,7 @@ Our goal was to embed an ApexChart with configurations like this:
 ```
 </pre>
 
-This example, taken from the ApexCharts documentation on [Creating Your First JavaScript Chart][apexcharts-example] showcases a simple line chart of sales data over the years.
+This example configuration, taken from the ApexCharts documentation on [Creating Your First JavaScript Chart][apexcharts-example] showcases a simple line chart of sales data over the years.
 
 ## Step 1: Enable ApexCharts in Your Jekyll Site
 
@@ -58,10 +58,9 @@ In the same file (within the same conditional), add another script block to rend
                 options = new Function("return " + element.textContent)()
             }
 
-            // the highlight elements renders to pre -> code
+            // the language block renders to pre -> code
             // we navigate to the parent of that
-            const preElement = element.parentElement
-            const parent = preElement.parentElement
+            const parent = element.parentElement.parentElement
 
             // Create a new div element
             const newDiv = document.createElement('div');
@@ -171,7 +170,7 @@ A third option is to keep the chart configuration in an external JSON file for a
 
 <pre>
 ```apexchart
-{% include jekyll-apexcharts/example.json %}
+{% raw %}{% include jekyll-apexcharts/example.json %}{% endraw %}
 ```
 </pre>
 
@@ -179,8 +178,9 @@ A third option is to keep the chart configuration in an external JSON file for a
 {% include jekyll-apexcharts/example.json %}
 ```
 
-This approach keeps your post sources shorter and easier to read, while still allowing ApexCharts to render the chart.
+This approach keeps your post sources shorter and easier to read, while still allowing ApexCharts to render the chart. Check the [Jekyll documentation on Includes][jekyll-include] for more details how to use include.
 
+[jekyll-include]: https://jekyllrb.com/docs/includes/
 [jekyll-tags]: https://jekyllrb.com/docs/plugins/tags/
 [apexcharts]: https://apexcharts.com/
 [apexcharts-example]: https://apexcharts.com/docs/creating-first-javascript-chart/
